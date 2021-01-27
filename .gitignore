@@ -1,5 +1,5 @@
-data/
-log/
-model/
-old_files/
-optimized_model/
+data
+log
+model
+old_files
+optimized_model
