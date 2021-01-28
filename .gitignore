@@ -1,5 +1,8 @@
-data
-log
-model
-old_files
-optimized_model
+.*
+!.gitignore
+/data/
+/log/
+/model/
+/old_files/
+/optimized_model/
+/venv/
