@@ -145,8 +145,9 @@ class Application(tk.Tk):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.title('Separation Dynamics')
-        self.
+
 
 
 if __name__ == '__main__':
