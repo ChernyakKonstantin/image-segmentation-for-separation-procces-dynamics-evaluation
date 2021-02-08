@@ -3,7 +3,7 @@ from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from commons import UpdatedMeanIoU
 
 
-PROJECT_DIRNAME = r'C:\Users\zvfrf\Documents\cherniak\diploma'
+PROJECT_DIRNAME = r'C:\Users\zvfrf\Documents\PyCharmProjects\diploma_prj'
 DATA_DIRNAME = 'data'
 
 ORIGINAL_DATA_DIRNAME = 'original'

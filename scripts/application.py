@@ -10,6 +10,7 @@ import tensorflow as tf
 import constants
 from commons import make_dir
 
+import tkinter as tk
 
 def create_mask(pred):
     """Функция создания изображения маски.
@@ -138,6 +139,18 @@ def run_app():
             timer = time()
 
 
+class Application(tk.Tk):
+    """Класс оконного приложения
+
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title('Separation Dynamics')
+        self.
+
 
 if __name__ == '__main__':
     run_app()
+
+
+
