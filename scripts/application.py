@@ -12,6 +12,7 @@ from commons import make_dir
 
 import tkinter as tk
 
+
 def create_mask(pred):
     """Функция создания изображения маски.
 
