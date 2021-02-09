@@ -1,86 +1,15 @@
 import csv
 import tkinter as tk
-from os import remove
-from os.path import join
 from queue import Queue
 from threading import Thread
 from time import time
 from tkinter import ttk
 
-from PIL import Image, ImageTk
-
-
 import cv2 as cv
-import numpy as np
-import tensorflow as tf
+from PIL import Image, ImageTk
 
 import constants
 import widgets as w
-from commons import make_dir
-
-
-def create_mask(pred):
-    """Функция создания изображения маски.
-
-    Args:
-        pred (tensorflow.Tensor: Предсказанная моделью маска
-
-    Returns:
-        mask (numpy.ndarray): Одноканальное изображение маски
-
-    """
-    mask = tf.argmax(pred, axis=-1)[0]
-    mask = mask.numpy()
-    mask = mask.astype('uint8')
-    return mask
-
-
-def predict(image, model):
-    """Функция предсказания маски изображения.
-
-    Args:
-        image (numpy.ndarray): Изображение, для которого необходимо предсказать маску
-        model (tensorflow.function): Модель для предсказания маски
-
-    Returns:
-        mask (numpy.ndarray): Одноканальное изображение маски
-
-    """
-    image = np.expand_dims(image, axis=0)
-    image = image.astype('float32')
-    pred = model(image)
-    mask = create_mask(pred)
-    return mask
-
-
-def calc_fractions(mask):
-    """Функция вычисления долей фракции на изображении.
-
-    Args:
-        mask (numpy.ndarray): Семантическая маска изображения
-
-    Returns:
-        (tuple): Доля фракций масла, эмульсии, воды
-
-    """
-    total = mask.sum()
-    oil_fraction = round(mask[mask == constants.OIL_ID].sum() / total, 3)
-    emulsion_fraction = round(mask[mask == constants.EMULSION_ID].sum() / total, 3)
-    water_fraction = round(mask[mask == constants.WATER_ID].sum() / total, 3)
-    return oil_fraction, emulsion_fraction, water_fraction
-
-
-def get_capture():
-    """Функция инизиализации и настройки экзмепляра класса cv2.VideoCapture
-
-    Returns:
-        capture(cv2.VideoCapture): Настроенный экземпляр класса cv2.VideoCapture
-
-    """
-    capture = cv.VideoCapture(constants.DEVICE_ID, cv.CAP_ANY)
-    capture.set(cv.CAP_PROP_FRAME_WIDTH, constants.CAMERA_RESOLUTION[0])
-    capture.set(cv.CAP_PROP_FRAME_HEIGHT, constants.CAMERA_RESOLUTION[1])
-    return capture
 
 
 def write_csv(file_path, data):
@@ -103,51 +32,35 @@ class Application(tk.Tk):
     background_color = '#282d2f'
     text_color = '#d4d5d5'
 
-    def log_setup(self):
-        self.log_dir = join(
-            constants.PROJECT_DIRNAME,
-            constants.LOG_DIR,
-        )
-        make_dir(self.log_dir)
-
-        self.log_file_path = join(
-            self.log_dir,
-            constants.LOG_FILENAME
-        )
-        remove(self.log_file_path)  # Удаление старого файла лога
-
     def camera_setup(self):
-        self.cap = get_capture()
+        """Функция инизиализации и настройки экзмепляра класса cv2.VideoCapture
 
-    def model_setup(self):
-        self.model_dir = join(constants.PROJECT_DIRNAME, constants.MODEL_DIR)
-        self.model = tf.saved_model.load(self.model_dir)
+        Returns:
+            capture(cv2.VideoCapture): Настроенный экземпляр класса cv2.VideoCapture
 
-    def inference(self):
-        ret, image = self.cap.read()
-        mask = predict(image, self.model)
-        oil_fraction, emulsion_fraction, water_fraction = calc_fractions(mask)
-        write_csv(self.log_file_path, (oil_fraction, emulsion_fraction, water_fraction))
+        """
+        self.capture = cv.VideoCapture(constants.DEVICE_ID, cv.CAP_ANY)
+        self.capture.set(cv.CAP_PROP_FRAME_WIDTH, constants.CAMERA_RESOLUTION[0])
+        self.capture.set(cv.CAP_PROP_FRAME_HEIGHT, constants.CAMERA_RESOLUTION[1])
 
 
-    def go(self):
-        p = CameraControl(self.queue, self.cap, constants.PERIOD)
-        p.start()
-        self.after(1, self.check_queue)
+    def run_camera(self):
+        self.camera_thread = CameraThread(self.queue, self.capture, constants.PERIOD)
+        self.camera_thread.start()
 
     def check_queue(self):
         if not self.queue.empty():
             self.image = self.queue.get()
             self.mf.image.create_image(0, 0, anchor='nw', image=self.image)
-            # print('HERE')
         self.after(1, self.check_queue)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.log_setup()
-        self.camera_setup()
-        # self.model_setup()
+
         self.queue = Queue()
+        self.camera_setup()
+
+        self.run_camera()
 
 
         self.title('Separation Dynamics')
@@ -170,10 +83,10 @@ class Application(tk.Tk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        self.after(100, self.go)
+        self.after(100, self.check_queue)
 
 
-class CameraControl(Thread):
+class CameraThread(Thread):
     """Поток для считывания изображения с камеры."""
 
     def __init__(self, queue, capture, period, *args, **kwargs):
