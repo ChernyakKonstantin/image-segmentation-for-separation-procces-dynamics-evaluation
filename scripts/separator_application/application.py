@@ -4,7 +4,7 @@ from os import remove
 from os.path import join
 from queue import Queue
 from threading import Thread
-from time import sleep
+from time import time
 from tkinter import ttk
 
 from PIL import Image, ImageTk
@@ -131,7 +131,7 @@ class Application(tk.Tk):
 
 
     def go(self):
-        p = CameraControl(self.queue, self.cap)
+        p = CameraControl(self.queue, self.cap, constants.PERIOD)
         p.start()
         self.after(1, self.check_queue)
 
@@ -174,22 +174,34 @@ class Application(tk.Tk):
 
 
 class CameraControl(Thread):
+    """Поток для считывания изображения с камеры."""
 
-    def __init__(self, queue, capture, *args, **kwargs):
+    def __init__(self, queue, capture, period, *args, **kwargs):
+        """
+
+        Args:
+            queue (queue.Queue):
+            capture (cv2.VideoCapture):
+            period (float): Период считвания с камеры (в секундах)
+        """
         super().__init__(*args, **kwargs)
         self.queue = queue
         self.capture = capture
+        self.period = period
 
     def run(self):
+        t_1 = time()
         while True:
-            ret, image = self.capture.read()
-            image = cv.resize(image, (300, 300))
-            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+            if time() - t_1 >= self.period:
+                _, image = self.capture.read()
+                image = cv.resize(image, (300, 300))
+                image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
-            image = Image.fromarray(image)
-            image = ImageTk.PhotoImage(image)
+                image = Image.fromarray(image)
+                image = ImageTk.PhotoImage(image)
 
-            self.queue.put(image)
+                self.queue.put(image)
+                t_1 = time()
 
 
 
