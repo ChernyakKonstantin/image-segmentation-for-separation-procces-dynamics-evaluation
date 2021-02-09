@@ -26,6 +26,7 @@ def create_mask(pred):
     mask = tf.argmax(pred, axis=-1)[0]
     mask = mask.numpy()
     mask = mask.astype('uint8')
+    mask = mask ** 6
     return mask
 
 

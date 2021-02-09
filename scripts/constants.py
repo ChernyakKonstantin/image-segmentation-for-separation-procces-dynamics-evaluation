@@ -78,4 +78,4 @@ CAMERA_RESOLUTION = (1280, 720)
 LOG_DIR = 'log'
 LOG_FILENAME = 'log.csv'
 
-PERIOD = 30  # Период срабатывания приложения (секунды)
+PERIOD = 0.03  # Период срабатывания приложения (секунды)

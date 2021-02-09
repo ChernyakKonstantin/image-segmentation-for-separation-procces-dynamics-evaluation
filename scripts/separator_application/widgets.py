@@ -17,6 +17,9 @@ class LabelCanvas(ttk.Frame):
     def create_image(self, *args, **kwargs):
         self.canvas.create_image(*args, **kwargs)
 
+    def grid(self, sticky=tk.NSEW, padx=0, pady=0, **kwargs):
+        super().grid(sticky=sticky, padx=padx, pady=pady, **kwargs)
+
 
 # class LabelsPanel(ttk.Frame):
 #     def __init__(self, parent, *args, **kwargs):
@@ -67,10 +70,11 @@ class MainFrame(ttk.Frame):
 
         self.image.grid(row=0, column=0, sticky=tk.NSEW)
         self.mask.grid(row=1, column=0, sticky=tk.NSEW)
-        self.plot.grid(row=0, column=1, rowspan=2, sticky=tk.NSEW)
+        self.plot.grid(row=0, column=1, rowspan=2, columnspan=2, sticky=tk.NSEW)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
+
 
 
 class Application(tk.Tk):
@@ -89,15 +93,12 @@ class Application(tk.Tk):
         self.style.configure(
             'TFrame',
             background=Application.background_color,
-            padding='0.5c'
-            # borderwidth=5
+
         )
         self.style.configure(
             'TLabel',
             background=Application.background_color,
             foreground=Application.text_color,
-            relief='flat',
-            # padding='0.5c',
             font=('TkDefaultFont', 12),
         )
 

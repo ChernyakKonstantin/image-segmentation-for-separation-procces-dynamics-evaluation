@@ -1,16 +1,22 @@
 import csv
+import tkinter as tk
 from os import remove
 from os.path import join
-from time import time
+from queue import Queue
+from threading import Thread
+from time import sleep
+from tkinter import ttk
+
+from PIL import Image, ImageTk
+
 
 import cv2 as cv
 import numpy as np
 import tensorflow as tf
 
 import constants
+import widgets as w
 from commons import make_dir
-
-import tkinter as tk
 
 
 def create_mask(pred):
@@ -90,69 +96,103 @@ def write_csv(file_path, data):
         writer.writerow(data)
 
 
-def run_app():
-    """Функция запуска приложения.
-
-    Функция выполняет следующие задачи:
-    1. Делает снимок с камеры;
-    2. Использует модель для предсказания семантической маски изображения;
-    3. Вычисляет доли фракций;
-    4. Логирует данные о долях фракций в файл.
-    5. Выводит изображения снимка и соответствующей маски.
-
-    Период срабатывания приложения определяется в файле constants.
-
-
-    """
-    log_dir = join(
-        constants.PROJECT_DIRNAME,
-        constants.LOG_DIR,
-    )
-    make_dir(log_dir)
-
-    log_file_path = join(
-        log_dir,
-        constants.LOG_FILENAME
-    )
-    remove(log_file_path)  # Удаление старого файла лога
-
-    model_dir = join(constants.PROJECT_DIRNAME, constants.MODEL_DIR)
-    model = tf.saved_model.load(model_dir)
-
-    cap = get_capture()
-
-    timer = 0
-    while True:
-        if time() - timer >= constants.PERIOD:
-            ret, image = cap.read()
-
-            mask = predict(image, model)
-
-            oil_fraction, emulsion_fraction, water_fraction = calc_fractions(mask)
-            write_csv(log_file_path, (oil_fraction, emulsion_fraction, water_fraction))
-
-            cv.imshow('Segmented Image', cv.resize(mask, (300, 300)))
-            cv.imshow('Image', cv.resize(image, (300, 300)))
-
-            if cv.waitKey(1) & 0xFF == ord('q'):
-                break
-
-            timer = time()
-
-
 class Application(tk.Tk):
     """Класс оконного приложения
 
     """
+    background_color = '#282d2f'
+    text_color = '#d4d5d5'
+
+    def log_setup(self):
+        self.log_dir = join(
+            constants.PROJECT_DIRNAME,
+            constants.LOG_DIR,
+        )
+        make_dir(self.log_dir)
+
+        self.log_file_path = join(
+            self.log_dir,
+            constants.LOG_FILENAME
+        )
+        remove(self.log_file_path)  # Удаление старого файла лога
+
+    def camera_setup(self):
+        self.cap = get_capture()
+
+    def model_setup(self):
+        self.model_dir = join(constants.PROJECT_DIRNAME, constants.MODEL_DIR)
+        self.model = tf.saved_model.load(self.model_dir)
+
+    def inference(self):
+        ret, image = self.cap.read()
+        mask = predict(image, self.model)
+        oil_fraction, emulsion_fraction, water_fraction = calc_fractions(mask)
+        write_csv(self.log_file_path, (oil_fraction, emulsion_fraction, water_fraction))
+
+
+    def go(self):
+        p = CameraControl(self.queue, self.cap)
+        p.start()
+        self.after(1, self.check_queue)
+
+    def check_queue(self):
+        if not self.queue.empty():
+            self.image = self.queue.get()
+            self.mf.image.create_image(0, 0, anchor='nw', image=self.image)
+            # print('HERE')
+        self.after(1, self.check_queue)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # self.log_setup()
+        self.camera_setup()
+        # self.model_setup()
+        self.queue = Queue()
+
 
         self.title('Separation Dynamics')
+
+        self.style = ttk.Style()
+        self.style.configure(
+            'TFrame',
+            background=Application.background_color,
+
+        )
+        self.style.configure(
+            'TLabel',
+            background=Application.background_color,
+            foreground=Application.text_color,
+            font=('TkDefaultFont', 12),
+        )
+
+        self.mf = w.MainFrame(self)
+        self.mf.grid(sticky=tk.NSEW)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        self.after(100, self.go)
+
+
+class CameraControl(Thread):
+
+    def __init__(self, queue, capture, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.queue = queue
+        self.capture = capture
+
+    def run(self):
+        while True:
+            ret, image = self.capture.read()
+            image = cv.resize(image, (300, 300))
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+
+            image = Image.fromarray(image)
+            image = ImageTk.PhotoImage(image)
+
+            self.queue.put(image)
 
 
 
 if __name__ == '__main__':
-    run_app()
-
-
-
+    app = Application()
+    app.mainloop()
