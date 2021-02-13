@@ -19,7 +19,7 @@ class LabelCanvas(ttk.LabelFrame):
         super().grid(sticky=sticky, **kwargs)
 
     def get_canvas_size(self):
-        return self.canvas['width'], self.canvas['height']
+        return int(self.canvas['width']), int(self.canvas['height'])
 
 
 class LabelText(ttk.LabelFrame):
