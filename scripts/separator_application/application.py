@@ -43,9 +43,13 @@ class Application(tk.Tk):
         self.capture.set(cv.CAP_PROP_FRAME_WIDTH, constants.CAMERA_RESOLUTION[0])
         self.capture.set(cv.CAP_PROP_FRAME_HEIGHT, constants.CAMERA_RESOLUTION[1])
 
-
     def run_camera(self):
-        self.camera_thread = CameraThread(self.queue, self.capture, constants.PERIOD)
+        self.camera_thread = CameraThread(
+            self.queue,
+            self.capture,
+            constants.PERIOD,
+            self.mf.image.get_canvas_size()
+        )
         self.camera_thread.start()
 
     def check_queue(self):
@@ -57,11 +61,6 @@ class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.queue = Queue()
-        self.camera_setup()
-
-        self.run_camera()
-
         self.geometry('1280x720')
         self.resizable(False, False)
 
@@ -72,13 +71,18 @@ class Application(tk.Tk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+        self.queue = Queue()
+        self.camera_setup()
+
+        self.run_camera()
+
         self.after(100, self.check_queue)
 
 
 class CameraThread(Thread):
     """Поток для считывания изображения с камеры."""
 
-    def __init__(self, queue, capture, period, *args, **kwargs):
+    def __init__(self, queue, capture, period, image_size, *args, **kwargs):
         """
 
         Args:
@@ -90,13 +94,15 @@ class CameraThread(Thread):
         self.queue = queue
         self.capture = capture
         self.period = period
+        self.image_width, self.image_height = image_size
+        print(self.image_width, self.image_height)
 
     def run(self):
         t_1 = time()
         while True:
             if time() - t_1 >= self.period:
                 _, image = self.capture.read()
-                image = cv.resize(image, (300, 300))
+                image = cv.resize(image, (self.image_width, self.image_height))
                 image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
                 image = Image.fromarray(image)
@@ -104,7 +110,6 @@ class CameraThread(Thread):
 
                 self.queue.put(image)
                 t_1 = time()
-
 
 
 if __name__ == '__main__':
