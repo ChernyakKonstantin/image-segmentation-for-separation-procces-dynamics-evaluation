@@ -62,21 +62,10 @@ class Application(tk.Tk):
 
         self.run_camera()
 
+        self.geometry('1280x720')
+        self.resizable(False, False)
 
         self.title('Separation Dynamics')
-
-        self.style = ttk.Style()
-        self.style.configure(
-            'TFrame',
-            background=Application.background_color,
-
-        )
-        self.style.configure(
-            'TLabel',
-            background=Application.background_color,
-            foreground=Application.text_color,
-            font=('TkDefaultFont', 12),
-        )
 
         self.mf = w.MainFrame(self)
         self.mf.grid(sticky=tk.NSEW)
