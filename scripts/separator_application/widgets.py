@@ -3,7 +3,6 @@ from tkinter import ttk
 
 
 class LabelCanvas(ttk.LabelFrame):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -41,17 +40,14 @@ class LabelText(ttk.LabelFrame):
         super().grid(sticky=sticky, **kwargs)
 
 
-
 class MainFrame(ttk.Frame):
-
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-
 
         self.image = LabelCanvas(
             self,
             text='Original',
-            labelanchor = tk.N,
+            labelanchor=tk.N,
         )
         self.mask = LabelCanvas(
             self,
@@ -72,30 +68,3 @@ class MainFrame(ttk.Frame):
         self.mask.place(x=0, y=310, height=310, width=420)
         self.plot.place(x=420, y=0, height=620, width=860)
         self.info.place(x=0, y=620, height=100, width=1280)
-
-
-class Application(tk.Tk):
-    """Класс оконного приложения
-
-    """
-    background_color = '#282d2f'
-    text_color = '#d4d5d5'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.geometry('1280x720')
-        self.resizable(False, False)
-
-        self.title('Separation Dynamics')
-
-        mainframe = MainFrame(self)
-        mainframe.grid(sticky=tk.NSEW)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-
-
-if __name__ == '__main__':
-    app = Application()
-    app.mainloop()
