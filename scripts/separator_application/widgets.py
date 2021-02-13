@@ -2,58 +2,43 @@ import tkinter as tk
 from tkinter import ttk
 
 
-class LabelCanvas(ttk.Frame):
+class LabelCanvas(ttk.LabelFrame):
 
-    def __init__(self, parent, title, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-        ttk.Label(self, anchor=tk.CENTER, text=title).grid(sticky=tk.NSEW)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.canvas = tk.Canvas(self, bg='blue')
         self.canvas.grid(sticky=tk.NSEW)
 
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
     def create_image(self, *args, **kwargs):
         self.canvas.create_image(*args, **kwargs)
 
-    def grid(self, sticky=tk.NSEW, padx=0, pady=0, **kwargs):
-        super().grid(sticky=sticky, padx=padx, pady=pady, **kwargs)
+    def grid(self, sticky=tk.NSEW, **kwargs):
+        super().grid(sticky=sticky, **kwargs)
+
+    def get_canvas_size(self):
+        return self.canvas['width'], self.canvas['height']
 
 
-# class LabelsPanel(ttk.Frame):
-#     def __init__(self, parent, *args, **kwargs):
-#         self.oil_fraction = tk.StringVar()
-#         self.emulsion_fraction = tk.StringVar()
-#         self.water_fraction = tk.StringVar()
-#
-#         self.oil_fraction.set('Oil: None%')
-#         self.emulsion_fraction.set('Emulsion: None%')
-#         self.water_fraction.set('Water: None%')
-#
-#         super().__init__(parent, *args, **kwargs)
-#         ttk.Label(self, textvariable=self.oil_fraction, anchor=tk.W).grid(row=0, sticky=tk.EW)
-#         ttk.Label(self, textvariable=self.emulsion_fraction, anchor=tk.W).grid(row=1, sticky=tk.EW)
-#         ttk.Label(self, textvariable=self.water_fraction, anchor=tk.W).grid(row=2, sticky=tk.EW)
+class LabelText(ttk.LabelFrame):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+        self.text = tk.Text(self)
+        self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
 
-# class TextValues(ttk.LabelFrame):
-#
-#     def __init__(self, parent, value_names: list, *args, **kwargs):
-#         super().__init__(parent, *args, **kwargs)
-#         self.text_vars = {key: tk.StringVar for key in value_names}
-#         for i, key in enumerate(self.text_vars.keys()):
-#             ttk.Label(
-#                 self,
-#                 textvariable=self.text_vars[key],
-#                 anchor=tk.W
-#             ).grid(row=i, sticky=tk.EW)
-#
-#     def update_vars(self, update: dict):
-#         for key, value in update.items():
-#             self.text_vars[key].set(value)
+        self.text.grid(row=0, column=0, sticky=tk.NSEW)
+        self.scrollbar.grid(row=0, column=1, sticky=tk.NSEW)
 
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=0)
 
+    def grid(self, sticky=tk.NSEW, **kwargs):
+        super().grid(sticky=sticky, **kwargs)
 
 
 
@@ -63,18 +48,30 @@ class MainFrame(ttk.Frame):
         super().__init__(parent, *args, **kwargs)
 
 
-        self.image = LabelCanvas(self, 'Original')
-        self.mask = LabelCanvas(self, 'Segmented')
-        self.plot = LabelCanvas(self, 'Trend')
-
-
-        self.image.grid(row=0, column=0, sticky=tk.NSEW)
-        self.mask.grid(row=1, column=0, sticky=tk.NSEW)
-        self.plot.grid(row=0, column=1, rowspan=2, columnspan=2, sticky=tk.NSEW)
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-
+        self.image = LabelCanvas(
+            self,
+            text='Original',
+            labelanchor = tk.N,
+        )
+        self.mask = LabelCanvas(
+            self,
+            text='Segmented',
+            labelanchor=tk.N,
+        )
+        self.plot = LabelCanvas(
+            self,
+            text='Plot',
+            labelanchor=tk.N,
+        )
+        self.info = LabelText(
+            self,
+            text='Info',
+            labelanchor=tk.NW,
+        )
+        self.image.place(x=0, y=0, height=310, width=420)
+        self.mask.place(x=0, y=310, height=310, width=420)
+        self.plot.place(x=420, y=0, height=620, width=860)
+        self.info.place(x=0, y=620, height=100, width=1280)
 
 
 class Application(tk.Tk):
@@ -87,22 +84,13 @@ class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.geometry('1280x720')
+        self.resizable(False, False)
+
         self.title('Separation Dynamics')
 
-        self.style = ttk.Style()
-        self.style.configure(
-            'TFrame',
-            background=Application.background_color,
-
-        )
-        self.style.configure(
-            'TLabel',
-            background=Application.background_color,
-            foreground=Application.text_color,
-            font=('TkDefaultFont', 12),
-        )
-
-        MainFrame(self).grid(sticky=tk.NSEW)
+        mainframe = MainFrame(self)
+        mainframe.grid(sticky=tk.NSEW)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
