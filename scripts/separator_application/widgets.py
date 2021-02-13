@@ -41,6 +41,9 @@ class LabelText(ttk.LabelFrame):
     def grid(self, sticky=tk.NSEW, **kwargs):
         super().grid(sticky=sticky, **kwargs)
 
+    def new_line(self, text):
+        self.text.insert(tk.END, text + '\n')
+
 
 class MainFrame(ttk.Frame):
     def __init__(self, parent, *args, **kwargs):
