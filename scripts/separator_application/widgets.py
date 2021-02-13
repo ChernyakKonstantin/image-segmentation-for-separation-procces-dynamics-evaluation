@@ -26,8 +26,10 @@ class LabelText(ttk.LabelFrame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.text = tk.Text(self)
         self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
+        self.text = tk.Text(self, yscrollcommand=self.scrollbar.set)
+
+        self.scrollbar.config(command=self.text.yview)
 
         self.text.grid(row=0, column=0, sticky=tk.NSEW)
         self.scrollbar.grid(row=0, column=1, sticky=tk.NSEW)
