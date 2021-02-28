@@ -57,7 +57,8 @@ class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.camera_setup()
-        self.predictor = None
+        # self.predictor = None
+        self.async_model_setup()
 
         self.main_window = MainWindow()
 
@@ -68,8 +69,13 @@ class Application(QApplication):
         self.camera_timer = QTimer()
         self.camera_timer.timeout.connect(self.run_camera)
 
-    def model_setup(self):
-        time.sleep(15)
+    def async_model_setup(self):
+        def model_loader():
+            time.sleep(5)
+            print('Awaking!')
+
+        self.thread = Thread(target=model_loader, name='predictor_loader')
+        self.thread.start()
 
     def run_camera(self):
         ret, frame = self.video_cap.read()
