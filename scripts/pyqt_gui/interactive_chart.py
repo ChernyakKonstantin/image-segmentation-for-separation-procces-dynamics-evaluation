@@ -19,6 +19,8 @@ class InteractiveChart(QChartView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.enable_move = False
+
         self.series = QLineSeries()
 
         h_axis = QValueAxis() # change to Datetime
@@ -42,15 +44,22 @@ class InteractiveChart(QChartView):
 
         self.setup_pseudo_data_gen_timer()
 
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MiddleButton:
             self.chart.zoomReset()
         elif event.button() == Qt.LeftButton:
+            self.enable_move = True
             self.cursor_pos = event.pos()
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
+            self.enable_move = False
+
+    def mouseMoveEvent(self, event):
+        if self.enable_move:
             d = event.pos() - self.cursor_pos
+            self.cursor_pos = event.pos()
             dx = -d.x()
             dy = d.y()
             self.chart.scroll(dx, dy)
@@ -70,7 +79,7 @@ class InteractiveChart(QChartView):
 
     def setup_pseudo_data_gen_timer(self):
         self.pseudo_data_gen_timer = QTimer()
-        self.pseudo_data_gen_timer.setInterval(1000)
+        self.pseudo_data_gen_timer.setInterval(300)
         self.pseudo_data_gen_timer.timeout.connect(self.pseudo_data_gen)
         self.pseudo_data_gen_timer.start()
 
