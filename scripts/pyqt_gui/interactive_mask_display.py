@@ -32,11 +32,16 @@ class InteractiveMaskDisplay(QWidget):
 
     def _setup_buttons(self):
         self.show_all_cbtn = QCheckBox('Show all layers')
-        self.show_all_cbtn.clicked.connect(self._select_all)
+        self.show_all_cbtn.clicked.connect(self._on_show_all_cbtn_clicked)
 
         self.show_oil_layer_cbtn = QCheckBox('Show oil layer')
+        self.show_oil_layer_cbtn.clicked.connect(self._on_cbtn_clicked)
+
         self.show_emulsion_cbtn = QCheckBox('Show emulsion layer')
+        self.show_emulsion_cbtn.clicked.connect(self._on_cbtn_clicked)
+
         self.show_water_cbtn = QCheckBox('Show water layer')
+        self.show_water_cbtn.clicked.connect(self._on_cbtn_clicked)
 
     def _setup_btn_group(self):
         self.button_group = QButtonGroup()
@@ -61,15 +66,22 @@ class InteractiveMaskDisplay(QWidget):
         widget_layout.addWidget(self.img, 0, 1, Qt.AlignLeft)
         self.setLayout(widget_layout)
 
-    def _select_all(self):
+    def _on_show_all_cbtn_clicked(self):
         if self.show_all_cbtn.isChecked():
             self.show_oil_layer_cbtn.setCheckState(Qt.Checked)
             self.show_emulsion_cbtn.setCheckState(Qt.Checked)
             self.show_water_cbtn.setCheckState(Qt.Checked)
         else:
-            self.show_oil_layer_cbtn.setCheckState(Qt.Checked)
-            self.show_emulsion_cbtn.setCheckState(Qt.Checked)
-            self.show_water_cbtn.setCheckState(Qt.Checked)
+            self.show_oil_layer_cbtn.setCheckState(Qt.Unchecked)
+            self.show_emulsion_cbtn.setCheckState(Qt.Unchecked)
+            self.show_water_cbtn.setCheckState(Qt.Unchecked)
+
+    def _on_cbtn_clicked(self):
+        if all([button.isChecked() for button in self.button_group.buttons()]):
+            self.show_all_cbtn.setCheckState(Qt.Checked)
+        else:
+            self.show_all_cbtn.setCheckState(Qt.Unchecked)
+
 
     def draw(self, image: np.ndarray):
         rgb_image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
