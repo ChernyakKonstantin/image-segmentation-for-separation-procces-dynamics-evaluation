@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QStatusBar, QHBoxLayout, QMenuBar, \
     QGridLayout, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup, QGroupBox, QCheckBox
 from PyQt5.QtCore import QTimer, QEvent, QThread, QThreadPool, Qt, QSize, QPointF, QRectF, QMargins, Qt
-from PyQt5.QtGui import QImage, QPixmap, QPalette, QColor, QWheelEvent, QMouseEvent
+from PyQt5.QtGui import QImage, QPixmap, QPalette, QColor, QWheelEvent, QMouseEvent, QWindow
 from PyQt5.QtChart import QChart, QLineSeries, QChartView, QAbstractAxis, QValueAxis, QLegend
 import sys
 import cv2 as cv
@@ -86,6 +86,11 @@ class InteractiveMaskDisplay(QWidget):
         q_image = QImage(bytes(img), img.shape[1], img.shape[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
         self.img.setPixmap(pixmap)
+
+    def mouseDoubleClickEvent(self, event):
+        self.increased_window = QWindow()
+        self.increased_window.setTitle('Segmentation')
+        self.increased_window.show()
 
 
 class Application(QApplication):
