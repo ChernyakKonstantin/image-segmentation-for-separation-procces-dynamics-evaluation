@@ -2,7 +2,7 @@
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QStatusBar, QHBoxLayout, QMenuBar, \
-    QGridLayout, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup, QGroupBox, QCheckBox
+    QGridLayout, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup, QGroupBox, QCheckBox, QPushButton, QMenu, QAction, QActionGroup
 from PyQt5.QtCore import QTimer, QEvent, QThread, QThreadPool, Qt, QSize, QPointF, QRectF, QMargins, Qt
 from PyQt5.QtGui import QImage, QPixmap, QPalette, QColor, QWheelEvent, QMouseEvent, QWindow
 from PyQt5.QtChart import QChart, QLineSeries, QChartView, QAbstractAxis, QValueAxis, QLegend
@@ -25,62 +25,55 @@ class InteractiveMaskDisplay(QWidget):
     def __init__(self, title, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._setup_buttons()
-        self._setup_btn_group()
         self._setup_image()
+        self._setup_menu_pbtn()
         self._setup_layout()
-
-    def _setup_buttons(self):
-        self._show_all_cbtn = QCheckBox('Show all layers')
-        self._show_all_cbtn.clicked.connect(self._on_show_all_cbtn_clicked)
-
-        self._show_oil_layer_cbtn = QCheckBox('Show oil layer')
-        self._show_oil_layer_cbtn.clicked.connect(self._on_cbtn_clicked)
-
-        self._show_emulsion_cbtn = QCheckBox('Show emulsion layer')
-        self._show_emulsion_cbtn.clicked.connect(self._on_cbtn_clicked)
-
-        self._show_water_cbtn = QCheckBox('Show water layer')
-        self._show_water_cbtn.clicked.connect(self._on_cbtn_clicked)
-
-    def _setup_btn_group(self):
-        self._button_group = QButtonGroup()
-        self._button_group.setExclusive(False)
-        self._button_group.addButton(self._show_oil_layer_cbtn)
-        self._button_group.addButton(self._show_emulsion_cbtn)
-        self._button_group.addButton(self._show_water_cbtn)
 
     def _setup_image(self):
         self._img = QLabel()
         self._img.setPixmap(InteractiveMaskDisplay._get_default_pixmap())
 
-    def _setup_layout(self):
-        btn_layout = QVBoxLayout()
-        btn_layout.addWidget(self._show_all_cbtn)
-        btn_layout.addWidget(self._show_oil_layer_cbtn)
-        btn_layout.addWidget(self._show_emulsion_cbtn)
-        btn_layout.addWidget(self._show_water_cbtn)
 
+    def _setup_visibility_menu(self):
+        self.menu = QMenu('Select visible layers')
+        self._action_group = QActionGroup(self)
+        self._action_group.setExclusive(False)
+
+        self._visibility_menu_actions = {}
+        for action_name in ['All', 'Oil', 'Emulsion', 'Water']:
+            action = self.menu.addAction(action_name)
+            action.setCheckable(True)
+            if action_name == 'All':
+                action.triggered.connect(self._on_show_all_trigger)
+            else:
+                action.triggered.connect(self._on_visibility_menu_trigger)
+                self._action_group.addAction(action)
+            self._visibility_menu_actions[action_name] = action
+
+    def _setup_menu_pbtn(self):
+        self._setup_visibility_menu()
+        self.menu_pbtn = QPushButton('Visible layers')
+        self.menu_pbtn.setMenu(self.menu)
+
+    def _setup_layout(self):
         widget_layout = QGridLayout()
         widget_layout.addWidget(self._img, 0, 0, Qt.AlignLeft)
-        widget_layout.addLayout(btn_layout, 1, 0, Qt.AlignLeft)
+        widget_layout.addWidget(self.menu_pbtn, 1, 0, Qt.AlignLeft)
         self.setLayout(widget_layout)
 
-    def _on_show_all_cbtn_clicked(self):
-        if self._show_all_cbtn.isChecked():
-            self._show_oil_layer_cbtn.setCheckState(Qt.Checked)
-            self._show_emulsion_cbtn.setCheckState(Qt.Checked)
-            self._show_water_cbtn.setCheckState(Qt.Checked)
+    def _on_show_all_trigger(self):
+        if self._visibility_menu_actions['All'].isChecked():
+            for action in self._action_group.actions():
+                action.setChecked(True)
         else:
-            self._show_oil_layer_cbtn.setCheckState(Qt.Unchecked)
-            self._show_emulsion_cbtn.setCheckState(Qt.Unchecked)
-            self._show_water_cbtn.setCheckState(Qt.Unchecked)
+            for action in self._action_group.actions():
+                action.setChecked(False)
 
-    def _on_cbtn_clicked(self):
-        if all([button.isChecked() for button in self._button_group.buttons()]):
-            self._show_all_cbtn.setCheckState(Qt.Checked)
+    def _on_visibility_menu_trigger(self):
+        if all([action.isChecked() for action in self._action_group.actions()]):
+            self._visibility_menu_actions['All'].setChecked(True)
         else:
-            self._show_all_cbtn.setCheckState(Qt.Unchecked)
+            self._visibility_menu_actions['All'].setChecked(False)
 
     def draw(self, img: np.ndarray):
         q_image = QImage(bytes(img), img.shape[1], img.shape[0], QImage.Format_RGB888)
