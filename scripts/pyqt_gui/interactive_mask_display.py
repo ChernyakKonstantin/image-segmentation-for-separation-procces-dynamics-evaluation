@@ -82,13 +82,10 @@ class InteractiveMaskDisplay(QWidget):
         else:
             self.show_all_cbtn.setCheckState(Qt.Unchecked)
 
-
-    def draw(self, image: np.ndarray):
-        rgb_image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-        q_image = QImage(rgb_image, rgb_image.shape[1], rgb_image.shape[0], 3 * rgb_image.shape[1],
-                         QImage.Format_RGB888)  # Not fully correct
+    def draw(self, img: np.ndarray):
+        q_image = QImage(bytes(img), img.shape[1], img.shape[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
-        self.image.setPixmap(pixmap)
+        self.img.setPixmap(pixmap)
 
 
 class Application(QApplication):
