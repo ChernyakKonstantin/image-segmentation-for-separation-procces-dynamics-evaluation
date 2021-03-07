@@ -31,56 +31,56 @@ class InteractiveMaskDisplay(QWidget):
         self._setup_layout()
 
     def _setup_buttons(self):
-        self.show_all_cbtn = QCheckBox('Show all layers')
-        self.show_all_cbtn.clicked.connect(self._on_show_all_cbtn_clicked)
+        self._show_all_cbtn = QCheckBox('Show all layers')
+        self._show_all_cbtn.clicked.connect(self._on_show_all_cbtn_clicked)
 
-        self.show_oil_layer_cbtn = QCheckBox('Show oil layer')
-        self.show_oil_layer_cbtn.clicked.connect(self._on_cbtn_clicked)
+        self._show_oil_layer_cbtn = QCheckBox('Show oil layer')
+        self._show_oil_layer_cbtn.clicked.connect(self._on_cbtn_clicked)
 
-        self.show_emulsion_cbtn = QCheckBox('Show emulsion layer')
-        self.show_emulsion_cbtn.clicked.connect(self._on_cbtn_clicked)
+        self._show_emulsion_cbtn = QCheckBox('Show emulsion layer')
+        self._show_emulsion_cbtn.clicked.connect(self._on_cbtn_clicked)
 
-        self.show_water_cbtn = QCheckBox('Show water layer')
-        self.show_water_cbtn.clicked.connect(self._on_cbtn_clicked)
+        self._show_water_cbtn = QCheckBox('Show water layer')
+        self._show_water_cbtn.clicked.connect(self._on_cbtn_clicked)
 
     def _setup_btn_group(self):
-        self.button_group = QButtonGroup()
-        self.button_group.setExclusive(False)
-        self.button_group.addButton(self.show_oil_layer_cbtn)
-        self.button_group.addButton(self.show_emulsion_cbtn)
-        self.button_group.addButton(self.show_water_cbtn)
+        self._button_group = QButtonGroup()
+        self._button_group.setExclusive(False)
+        self._button_group.addButton(self._show_oil_layer_cbtn)
+        self._button_group.addButton(self._show_emulsion_cbtn)
+        self._button_group.addButton(self._show_water_cbtn)
 
     def _setup_image(self):
-        self.img = QLabel()
-        self.img.setPixmap(InteractiveMaskDisplay._get_default_pixmap())
+        self._img = QLabel()
+        self._img.setPixmap(InteractiveMaskDisplay._get_default_pixmap())
 
     def _setup_layout(self):
         btn_layout = QVBoxLayout()
-        btn_layout.addWidget(self.show_all_cbtn)
-        btn_layout.addWidget(self.show_oil_layer_cbtn)
-        btn_layout.addWidget(self.show_emulsion_cbtn)
-        btn_layout.addWidget(self.show_water_cbtn)
+        btn_layout.addWidget(self._show_all_cbtn)
+        btn_layout.addWidget(self._show_oil_layer_cbtn)
+        btn_layout.addWidget(self._show_emulsion_cbtn)
+        btn_layout.addWidget(self._show_water_cbtn)
 
         widget_layout = QGridLayout()
-        widget_layout.addLayout(btn_layout, 0, 0, Qt.AlignLeft)
-        widget_layout.addWidget(self.img, 0, 1, Qt.AlignLeft)
+        widget_layout.addWidget(self._img, 0, 0, Qt.AlignLeft)
+        widget_layout.addLayout(btn_layout, 1, 0, Qt.AlignLeft)
         self.setLayout(widget_layout)
 
     def _on_show_all_cbtn_clicked(self):
-        if self.show_all_cbtn.isChecked():
-            self.show_oil_layer_cbtn.setCheckState(Qt.Checked)
-            self.show_emulsion_cbtn.setCheckState(Qt.Checked)
-            self.show_water_cbtn.setCheckState(Qt.Checked)
+        if self._show_all_cbtn.isChecked():
+            self._show_oil_layer_cbtn.setCheckState(Qt.Checked)
+            self._show_emulsion_cbtn.setCheckState(Qt.Checked)
+            self._show_water_cbtn.setCheckState(Qt.Checked)
         else:
-            self.show_oil_layer_cbtn.setCheckState(Qt.Unchecked)
-            self.show_emulsion_cbtn.setCheckState(Qt.Unchecked)
-            self.show_water_cbtn.setCheckState(Qt.Unchecked)
+            self._show_oil_layer_cbtn.setCheckState(Qt.Unchecked)
+            self._show_emulsion_cbtn.setCheckState(Qt.Unchecked)
+            self._show_water_cbtn.setCheckState(Qt.Unchecked)
 
     def _on_cbtn_clicked(self):
-        if all([button.isChecked() for button in self.button_group.buttons()]):
-            self.show_all_cbtn.setCheckState(Qt.Checked)
+        if all([button.isChecked() for button in self._button_group.buttons()]):
+            self._show_all_cbtn.setCheckState(Qt.Checked)
         else:
-            self.show_all_cbtn.setCheckState(Qt.Unchecked)
+            self._show_all_cbtn.setCheckState(Qt.Unchecked)
 
     def draw(self, img: np.ndarray):
         q_image = QImage(bytes(img), img.shape[1], img.shape[0], QImage.Format_RGB888)
