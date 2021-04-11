@@ -1,3 +1,4 @@
+# TODO Добавить адекватную легенду и недостающие Series.
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QStatusBar, QHBoxLayout, QMenuBar, \
     QGridLayout, QSizePolicy
@@ -11,11 +12,6 @@ import datetime as dt
 
 
 class InteractiveChart(QChartView):
-    """
-    Скроллинг колесиком мыши - зумминг. (Done)
-    Нажатием левой кнопки мыши - перемещение. (Done)
-    """
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -23,7 +19,7 @@ class InteractiveChart(QChartView):
 
         self.series = QLineSeries()
 
-        h_axis = QValueAxis() # change to Datetime
+        h_axis = QValueAxis() # TODO change to Datetime
         h_axis.setRange(0, 100)
         h_axis.setTitleText('Time')
 
@@ -64,7 +60,7 @@ class InteractiveChart(QChartView):
             dy = d.y()
             self.chart.scroll(dx, dy)
 
-    def wheelEvent(self, event):
+    def wheelEvent(self, event):  # TODO somehow limit zooming in Y-direction in range (0, 100)
         delta = event.angleDelta()
         if delta.y() > 0:
             self.chart.zoomIn()
