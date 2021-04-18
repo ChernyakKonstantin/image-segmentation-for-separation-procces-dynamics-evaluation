@@ -1,5 +1,3 @@
-import csv
-import os
 from os import path
 
 import cv2 as cv
@@ -7,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 
 import constants
-from commons import make_dir
 
 
 class ImageProcessor:
@@ -48,7 +45,6 @@ class ImageProcessor:
     def __init__(self):
         self._setup_capture()
         self._setup_model()
-        self._setup_logger()
 
     def _setup_capture(self):
         """Функция инизиализации и настройки экзмепляра класса cv2.VideoCapture."""
@@ -59,19 +55,6 @@ class ImageProcessor:
     def _setup_model(self):
         model_dir = path.join(constants.PROJECT_DIRNAME, constants.MODEL_DIR)
         self.model = tf.saved_model.load(model_dir)
-
-    def _setup_logger(self):
-        log_dir = path.join(
-            constants.PROJECT_DIRNAME,
-            constants.LOG_DIR,
-        )
-        make_dir(log_dir)
-
-        self.log_file_path = path.join(
-            log_dir,
-            constants.LOG_FILENAME
-        )
-        os.remove(self.log_file_path)  # Удаление старого файла лога
 
     def _predict(self, image):
         """Функция предсказания маски изображения.
@@ -88,20 +71,10 @@ class ImageProcessor:
         pred = self.model(image)
         return pred
 
-    def _write_csv(self, data):
-        """Функция записи данных в конец csv файла.
-
-        Args:
-            file_path (str): Путь до файла записи данных
-            data (tuple): Записываемые данные
-        """
-        with open(self.log_file_path, 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(data)
 
     def process_frame(self):
         ret, image = self.capture.read()
         pred = self._predict(image)
         mask = ImageProcessor._create_mask(pred)
         oil_fraction, emulsion_fraction, water_fraction = ImageProcessor._calc_fractions(mask)
-        self._write_csv((oil_fraction, emulsion_fraction, water_fraction))
+        return mask, (oil_fraction, emulsion_fraction, water_fraction)
