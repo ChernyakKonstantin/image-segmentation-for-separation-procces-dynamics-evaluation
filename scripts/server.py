@@ -6,7 +6,7 @@ from typing import Tuple
 
 import numpy as np
 
-from image_processor import ImageProcessor
+from application import ImageProcessor
 
 
 class JetsonServerHandler(BaseRequestHandler):
