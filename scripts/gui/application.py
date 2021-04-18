@@ -1,3 +1,5 @@
+# TODO Добавить темную тему
+
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QStatusBar, QHBoxLayout, QMenuBar, QGridLayout, QSizePolicy
 from PyQt5.QtCore import QTimer, QEvent, QThread, QThreadPool, Qt, QSize, QPointF
@@ -10,6 +12,7 @@ import time
 from threading import Thread
 from queue import Queue
 from interactive_chart import InteractiveChart
+from interactive_mask_display import InteractiveMaskDisplay
 
 
 class LabeledCanvas(QWidget): #TODO чтобы часто не обрашаться сделать изменение хранимое значенияр азмера окна по событию изменение размера
@@ -61,7 +64,7 @@ class CentralWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.webcam_img = LabeledCanvas('Image')
-        self.segmented_img = LabeledCanvas('Segmentation')
+        self.segmented_img = InteractiveMaskDisplay('Segmentation')
         self.chart = InteractiveChart()
 
         v_layout = QVBoxLayout()
