@@ -19,7 +19,7 @@ class InteractiveMaskDisplay(QWidget):
     @staticmethod
     def _get_default_pixmap():
         q_image = QImage()
-        q_image.load(r'C:\Users\zvfrf\Documents\PyCharmProjects\diploma_prj\blank.png')
+        q_image.load(r'C:\Users\zvfrf\Documents\PyCharmProjects\diploma_prj\scripts\gui\blank.png')
         return QPixmap.fromImage(q_image)
 
     def __init__(self, title, *args, **kwargs):
