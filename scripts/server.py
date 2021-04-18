@@ -35,4 +35,5 @@ if __name__ == '__main__':
     HOST, PORT = 'localhost', 80
 
     with TCPServer((HOST, PORT), JetsonServerHandler) as server:
+        print(f'Server started on {HOST}, port {PORT}')
         server.serve_forever()
