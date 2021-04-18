@@ -11,6 +11,26 @@ import numpy as np
 import datetime as dt
 
 
+class PreviewTimeSeries(QChartView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+
+
+
+class AdvancedTimeSeriesChart(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        v_layout = QVBoxLayout()
+        v_layout.addWidget(InteractiveChart())
+        v_layout.addWidget(InteractiveChart())
+
+        self.setLayout(v_layout)
+
+
+
 class InteractiveChart(QChartView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
