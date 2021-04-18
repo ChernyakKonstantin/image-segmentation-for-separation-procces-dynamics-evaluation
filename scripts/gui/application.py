@@ -1,18 +1,29 @@
 # TODO Добавить темную тему
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QStatusBar, QHBoxLayout, QMenuBar, QGridLayout, QSizePolicy
-from PyQt5.QtCore import QTimer, QEvent, QThread, QThreadPool, Qt, QSize, QPointF
-from PyQt5.QtGui import QImage, QPixmap, QPalette, QColor
-from PyQt5.QtChart import QChart, QLineSeries, QChartView
+import socket
 import sys
-import cv2 as cv
-import numpy as np
 import time
 from threading import Thread
-from queue import Queue
+
+import cv2 as cv
+import numpy as np
+from PyQt5.QtCore import QSize, QTimer, Qt
+from PyQt5.QtGui import QColor, QImage, QPalette, QPixmap
+from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QMenuBar, QStatusBar, QVBoxLayout, QWidget
+
 from interactive_chart import InteractiveChart
 from interactive_mask_display import InteractiveMaskDisplay
+
+
+class Client:
+    """Класс TCP-клиента, опрашивающего сервер для получения результатов сегментации."""
+    def __init__(self, ip: str, port: int):
+        self._address = (ip, port)
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._sock.connect(self._address)
+
+    def receive(self):
+        raise NotImplementedError  # received = str(self._sock.recv(1024), "utf-8")
 
 
 class LabeledCanvas(QWidget): #TODO чтобы часто не обрашаться сделать изменение хранимое значенияр азмера окна по событию изменение размера
