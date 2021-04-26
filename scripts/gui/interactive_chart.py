@@ -2,7 +2,7 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QStatusBar, QHBoxLayout, QMenuBar, \
     QGridLayout, QSizePolicy
-from PyQt5.QtCore import QTimer, QEvent, QThread, QThreadPool, Qt, QSize, QPointF, QRectF, QMargins, Qt
+from PyQt5.QtCore import QTimer, QEvent, QThread, QThreadPool, Qt, QSize, QPointF, QRectF, QMargins, Qt, QDateTime
 from PyQt5.QtGui import QImage, QPixmap, QPalette, QColor, QWheelEvent, QMouseEvent
 from PyQt5.QtChart import QChart, QLineSeries, QChartView, QAbstractAxis, QValueAxis, QLegend, QDateTimeAxis
 import sys
@@ -16,9 +16,7 @@ import datetime
 class BaseTimeSeries(QChartView):
     def __init__(self,
                  x_label: str = '',
-                 x_range: Tuple[float, float] = (0, 1),
                  y_label: str = '',
-                 y_range: Tuple[float, float] = (0, 1),
                  title: str = '',
                  *args,
                  **kwargs):
@@ -26,14 +24,14 @@ class BaseTimeSeries(QChartView):
 
         x_axis = QDateTimeAxis()
         x_axis.setFormat('hh:mm:ss')
-        x_axis.setRange()  # TODO: Настроить
+        x_axis.setRange(datetime.datetime.now(), datetime.datetime.now() + datetime.timedelta(hours=1))
         x_axis.setTitleText(x_label)
 
         y_axis = QValueAxis()
-        y_axis.setRange(*y_range)
+        y_axis.setRange(0, 100)
         y_axis.setTitleText(y_label)
 
-        self.series = QLineSeries()
+        self.oil_series = QLineSeries()
 
         self.chart = QChart()
         self.chart.setTitle(title)
@@ -45,37 +43,6 @@ class BaseTimeSeries(QChartView):
         self.series.attachAxis(y_axis)
 
         self.setChart(self.chart)
-
-
-class PreviewTimeSeries(BaseTimeSeries):
-    """
-    Класс виджета, отображающего весь временной ряд. Имеет область выбора
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setRubberBand(QChartView.HorizontalRubberBand)  # Выбор области
-
-
-
-
-class AdvancedTimeSeriesChart(QWidget):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        v_layout = QVBoxLayout()
-        v_layout.addWidget(InteractiveChart(x_label='Time',
-                                             x_range=(0, 100),
-                                             y_label='Fraction, %',
-                                             y_range=(0, 100),
-                                             title='Title'))
-        v_layout.addWidget(PreviewTimeSeries(x_label='x',
-                                             x_range=(0, 1),
-                                             y_label='y',
-                                             y_range=(0, 1),
-                                             title='Title'))
-
-        self.setLayout(v_layout)
-
 
 
 class InteractiveChart(BaseTimeSeries):
@@ -123,11 +90,40 @@ class InteractiveChart(BaseTimeSeries):
         self.pseudo_data_gen_timer.start()
 
 
+class PreviewTimeSeries(BaseTimeSeries):
+    """
+    Класс виджета, отображающего весь временной ряд. Имеет область выбора
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setRubberBand(QChartView.HorizontalRubberBand)  # Выбор области
+
+
+
+class AdvancedTimeSeriesChart(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        v_layout = QVBoxLayout()
+        v_layout.addWidget(InteractiveChart(x_label='Time',
+                                             x_range=(0, 100),
+                                             y_label='Fraction, %',
+                                             y_range=(0, 100),
+                                             title='Title'))
+        v_layout.addWidget(PreviewTimeSeries(x_label='x',
+                                             x_range=(0, 1),
+                                             y_label='y',
+                                             y_range=(0, 1),
+                                             title='Title'))
+
+        self.setLayout(v_layout)
+
+
 class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.main_window = QMainWindow()
-        self.main_window.setCentralWidget(AdvancedTimeSeriesChart())
+        self.main_window.setCentralWidget(BaseTimeSeries())
         self.main_window.show()
 
 
