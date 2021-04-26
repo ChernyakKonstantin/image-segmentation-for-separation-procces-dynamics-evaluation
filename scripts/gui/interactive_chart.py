@@ -9,10 +9,40 @@ import sys
 import cv2 as cv
 import numpy as np
 import datetime as dt
+from typing import Tuple, List, Any
 
 
+class BaseTimeSeries(QChartView):
+    def __init__(self,
+                 x_label: str,
+                 x_range: Tuple[float, float],
+                 y_label: str,
+                 y_range: Tuple[float, float],
+                 title: str,
+                 *args,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
 
+        x_axis = QValueAxis()  # TODO change to Datetime
+        x_axis.setRange(*x_range)
+        x_axis.setTitleText(x_label)
 
+        y_axis = QValueAxis()
+        y_axis.setRange(*y_range)
+        y_axis.setTitleText(y_label)
+
+        self.series = QLineSeries()
+
+        self.chart = QChart()
+        self.chart.setTitle(title)
+        self.chart.addAxis(x_axis, Qt.AlignBottom)
+        self.chart.addAxis(y_axis, Qt.AlignLeft)
+        self.chart.addSeries(self.series)
+
+        self.series.attachAxis(x_axis)
+        self.series.attachAxis(y_axis)
+
+        self.setChart(self.chart)
 
 
 class PreviewTimeSeries(QChartView):
