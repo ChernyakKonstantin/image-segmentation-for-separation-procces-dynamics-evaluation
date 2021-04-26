@@ -50,14 +50,14 @@ class BaseTimeSeries(QChartView):
 
         self.setChart(self.chart)
 
-    def update_time_axis(self, new_limit: datetime.datetime):
+    def _update_time_axis(self, new_limit: datetime.datetime):
         """
         Метод обновления правой границы временного ряда.
 
         """
         self.x_axis.setRange(self.x_axis.min(), new_limit)
 
-    def update_series(self, values: Tuple[float, float, float]):
+    def _update_series(self, values: Tuple[float, float, float]):
         """
         Метод добавления новых значений временных рядов.
 
@@ -66,6 +66,17 @@ class BaseTimeSeries(QChartView):
         self.oil_series.append(oil_value)
         self.emulsion_series.append(emulsion_value)
         self.water_series.append(water_value)
+
+    def add_new_values(self, data: Tuple[datetime.datetime, Tuple[float, float, float]]):
+        """
+        Метод добавления новых значений временных рядов и момента времени.
+
+        """
+        time, values = data
+        self._update_time_axis(time)
+        self._update_series(values)
+
+
 
 
 
