@@ -50,12 +50,12 @@ class BaseTimeSeries(QChartView):
 
         self.setChart(self.chart)
 
-    def _update_time_axis(self, new_limit: datetime.datetime):
+    def _update_time_axis_max(self, new_limit: datetime.datetime):
         """
         Метод обновления правой границы временного ряда.
 
         """
-        self.x_axis.setRange(self.x_axis.min(), new_limit)
+        self.x_axis.setMax(new_limit)
 
     def _update_series(self, values: Tuple[float, float, float]):
         """
@@ -73,7 +73,7 @@ class BaseTimeSeries(QChartView):
 
         """
         time, values = data
-        self._update_time_axis(time)
+        self._update_time_axis_max(time)
         self._update_series(values)
 
 
@@ -158,7 +158,7 @@ class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.main_window = QMainWindow()
-        self.main_window.setCentralWidget(BaseTimeSeries())
+        self.main_window.setCentralWidget(PreviewTimeSeries())
         self.main_window.show()
 
 
