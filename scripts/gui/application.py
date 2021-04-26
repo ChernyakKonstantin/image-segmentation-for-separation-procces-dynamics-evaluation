@@ -1,4 +1,5 @@
 # TODO Добавить темную тему
+# TODO Добавить печать тренда
 
 import socket
 import sys
@@ -11,7 +12,7 @@ from PyQt5.QtCore import QSize, QTimer, Qt
 from PyQt5.QtGui import QColor, QImage, QPalette, QPixmap
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QMenuBar, QStatusBar, QVBoxLayout, QWidget
 
-from interactive_chart import InteractiveChart
+from interactive_chart import BaseTimeSeries
 from interactive_mask_display import InteractiveMaskDisplay
 
 
@@ -76,7 +77,7 @@ class CentralWidget(QWidget):
 
         self.webcam_img = LabeledCanvas('Image')
         self.segmented_img = InteractiveMaskDisplay('Segmentation')
-        self.chart = InteractiveChart()
+        self.chart = BaseTimeSeries()
 
         v_layout = QVBoxLayout()
         v_layout.addWidget(self.webcam_img)
@@ -93,8 +94,6 @@ class CentralWidget(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-
 
         self.setWindowTitle('Separator Dynamics Estimator')
 
@@ -114,45 +113,7 @@ class MainWindow(QMainWindow):
 class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.async_model_setup
-        self.camera_setup()  # self.async_camera_setup()
         self.main_window = MainWindow()
-
-        self.run_camera()
-
-    # def async_camera_setup(self):
-    #     """Выполняет подготовку видеокамеры в фоновом режиме."""
-    #     def camera_setup(parent): # Вопрос, насколько это корректно?
-    #         parent.video_cap = cv.VideoCapture(0)
-    #         parent.video_cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
-    #         parent.video_cap.set(cv.CAP_PROP_FRAME_HEIGHT, 360)
-    #         parent.camera_timer = QTimer()
-    #         parent.camera_timer.timeout.connect(parent.run_camera)
-    #
-    #     thread = Thread(target=camera_setup, name='camera_setup', args=([self]))
-    #     thread.start()
-
-    def camera_setup(self):
-        self.video_cap = cv.VideoCapture(0)
-        self.video_cap.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
-        self.video_cap.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
-        self.camera_timer = QTimer()
-        self.camera_timer.timeout.connect(self.run_camera)
-
-    def async_model_setup(self):
-        """Выполняет подготовку нейронной сети в фоновом режиме."""
-        def model_loader():
-            time.sleep(5)
-            print('Awaking!')
-
-        self.thread = Thread(target=model_loader, name='predictor_loader')  # args=([padded_image, kernel_x, conv_res_x, queue])
-        self.thread.start()
-        # self.run_camera()
-
-    def run_camera(self):
-        ret, frame = self.video_cap.read()
-        self.main_window.central_widget.webcam_img.draw(frame)
-        self.camera_timer.start(33)
 
     def process_image(self):
         """Реализовать создание снимка, его обработку и вывод снимка, маски, графика"""
