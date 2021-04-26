@@ -15,8 +15,6 @@ import datetime
 
 class BaseTimeSeries(QChartView):
     def __init__(self,
-                 x_label: str = '',
-                 y_label: str = '',
                  title: str = '',
                  *args,
                  **kwargs):
@@ -25,11 +23,11 @@ class BaseTimeSeries(QChartView):
         self.x_axis = QDateTimeAxis()
         self.x_axis.setFormat('hh:mm:ss')
         self.x_axis.setRange(datetime.datetime.now(), datetime.datetime.now() + datetime.timedelta(minutes=1))
-        self.x_axis.setTitleText(x_label)
+        self.x_axis.setTitleText('Time')
 
         self.y_axis = QValueAxis()
         self.y_axis.setRange(0, 100)
-        self.y_axis.setTitleText(y_label)
+        self.y_axis.setTitleText('Fraction, %')
 
         self.oil_series = QLineSeries()
         self.emulsion_series = QLineSeries()
