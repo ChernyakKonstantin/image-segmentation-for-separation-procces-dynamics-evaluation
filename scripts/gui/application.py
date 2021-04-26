@@ -110,14 +110,45 @@ class MainWindow(QMainWindow):
 class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._tcp_client_setup()
         self.main_window = MainWindow()
 
-    def process_image(self):
-        """Реализовать создание снимка, его обработку и вывод снимка, маски, графика"""
+    def _tcp_client_setup(self):
+        """
+        Инициализация TCP-клиента
 
+        """
+        self._tcp_client = Client()
+        self._tcp_client_timer = QTimer()
+        self._tcp_client_timer.setInterval(300)  # TODO: Change
+        self._tcp_client_timer.timeout.connect(self._handle_tcp_client)
+        self._tcp_client_timer.start()
+
+    def _handle_tcp_client(self):
+        """
+        Обработчик TCP-клиента
+
+        """
+        image, mask, cur_time, values = self._tcp_client.receive()
+        self.main_window.central_widget.chart.add_new_values((cur_time, values))
+        self.main_window.central_widget.segmented_img.draw((image, mask))
 
 
 
 
 app = Application(sys.argv)  # what's sys.argv?
 sys.exit(app.exec_())
+
+
+# def pseudo_data_gen(self):
+#     x = np.random.random() * 100
+#     y = np.random.random() * 100
+#     self.series.append(QPointF(x, y))
+#     self.pseudo_data_gen_timer.start()
+#
+#
+# def setup_pseudo_data_gen_timer(self):
+#     self.pseudo_data_gen_timer = QTimer()
+#     self.pseudo_data_gen_timer.setInterval(300)
+#     self.pseudo_data_gen_timer.timeout.connect(self.pseudo_data_gen)
+#     self.pseudo_data_gen_timer.start()
