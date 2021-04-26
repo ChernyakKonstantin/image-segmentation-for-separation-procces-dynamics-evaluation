@@ -4,12 +4,13 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLay
     QGridLayout, QSizePolicy
 from PyQt5.QtCore import QTimer, QEvent, QThread, QThreadPool, Qt, QSize, QPointF, QRectF, QMargins, Qt
 from PyQt5.QtGui import QImage, QPixmap, QPalette, QColor, QWheelEvent, QMouseEvent
-from PyQt5.QtChart import QChart, QLineSeries, QChartView, QAbstractAxis, QValueAxis, QLegend
+from PyQt5.QtChart import QChart, QLineSeries, QChartView, QAbstractAxis, QValueAxis, QLegend, QDateTimeAxis
 import sys
 import cv2 as cv
 import numpy as np
 import datetime as dt
 from typing import Tuple, List, Any
+import datetime
 
 
 class BaseTimeSeries(QChartView):
@@ -23,8 +24,9 @@ class BaseTimeSeries(QChartView):
                  **kwargs):
         super().__init__(*args, **kwargs)
 
-        x_axis = QValueAxis()  # TODO change to Datetime
-        x_axis.setRange(*x_range)
+        x_axis = QDateTimeAxis()
+        x_axis.setFormat('hh:mm:ss')
+        x_axis.setRange()  # TODO: Настроить
         x_axis.setTitleText(x_label)
 
         y_axis = QValueAxis()
@@ -55,6 +57,7 @@ class PreviewTimeSeries(BaseTimeSeries):
 
 
 
+
 class AdvancedTimeSeriesChart(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -80,7 +83,6 @@ class InteractiveChart(BaseTimeSeries):
         super().__init__(*args, **kwargs)
         self.enable_move = False
         self.setup_pseudo_data_gen_timer()
-
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MiddleButton:
