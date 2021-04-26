@@ -57,7 +57,7 @@ class BaseTimeSeries(QChartView):
         """
         self.x_axis.setRange(self.x_axis.min(), new_limit)
 
-    def update_series(self, values: tuple):
+    def update_series(self, values: Tuple[float, float, float]):
         """
         Метод добавления новых значений временных рядов.
 
