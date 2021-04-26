@@ -22,28 +22,42 @@ class BaseTimeSeries(QChartView):
                  **kwargs):
         super().__init__(*args, **kwargs)
 
-        x_axis = QDateTimeAxis()
-        x_axis.setFormat('hh:mm:ss')
-        x_axis.setRange(datetime.datetime.now(), datetime.datetime.now() + datetime.timedelta(hours=1))
-        x_axis.setTitleText(x_label)
+        self.x_axis = QDateTimeAxis()
+        self.x_axis.setFormat('hh:mm:ss')
+        self.x_axis.setRange(datetime.datetime.now(), datetime.datetime.now() + datetime.timedelta(minutes=1))
+        self.x_axis.setTitleText(x_label)
 
-        y_axis = QValueAxis()
-        y_axis.setRange(0, 100)
-        y_axis.setTitleText(y_label)
+        self.y_axis = QValueAxis()
+        self.y_axis.setRange(0, 100)
+        self.y_axis.setTitleText(y_label)
 
         self.oil_series = QLineSeries()
+        self.emulsion_series = QLineSeries()
+        self.water_series = QLineSeries()
 
         self.chart = QChart()
         self.chart.setTitle(title)
-        self.chart.addAxis(x_axis, Qt.AlignBottom)
-        self.chart.addAxis(y_axis, Qt.AlignLeft)
-        self.chart.addSeries(self.series)
+        self.chart.addAxis(self.x_axis, Qt.AlignBottom)
+        self.chart.addAxis(self.y_axis, Qt.AlignLeft)
+        self.chart.addSeries(self.oil_series)
+        self.chart.addSeries(self.emulsion_series)
+        self.chart.addSeries(self.water_series)
 
-        self.series.attachAxis(x_axis)
-        self.series.attachAxis(y_axis)
+        self.oil_series.attachAxis(self.x_axis)
+        self.oil_series.attachAxis(self.y_axis)
+        self.emulsion_series.attachAxis(self.x_axis)
+        self.emulsion_series.attachAxis(self.y_axis)
+        self.water_series.attachAxis(self.x_axis)
+        self.water_series.attachAxis(self.y_axis)
 
         self.setChart(self.chart)
 
+    def update_time_axis(self, new_limit: datetime.datetime):
+        """
+        Метод обновления правой границы временного ряда.
+
+        """
+        self.x_axis.setRange(self.x_axis.min(), new_limit)
 
 
 class InteractiveChart(BaseTimeSeries):
