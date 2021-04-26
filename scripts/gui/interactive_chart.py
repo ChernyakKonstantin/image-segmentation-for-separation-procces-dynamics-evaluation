@@ -60,40 +60,25 @@ class AdvancedTimeSeriesChart(QWidget):
         super().__init__(*args, **kwargs)
 
         v_layout = QVBoxLayout()
-        v_layout.addWidget(InteractiveChart())
-        v_layout.addWidget(PreviewTimeSeries())
+        v_layout.addWidget(InteractiveChart(x_label='Time',
+                                             x_range=(0, 100),
+                                             y_label='Fraction, %',
+                                             y_range=(0, 100),
+                                             title='Title'))
+        v_layout.addWidget(PreviewTimeSeries(x_label='x',
+                                             x_range=(0, 1),
+                                             y_label='y',
+                                             y_range=(0, 1),
+                                             title='Title'))
 
         self.setLayout(v_layout)
 
 
 
-class InteractiveChart(QChartView):
+class InteractiveChart(BaseTimeSeries):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.enable_move = False
-
-        self.series = QLineSeries()
-
-        h_axis = QValueAxis() # TODO change to Datetime
-        h_axis.setRange(0, 100)
-        h_axis.setTitleText('Time')
-
-        v_axis = QValueAxis()
-        v_axis.setRange(0, 100)
-        v_axis.setTitleText('Fraction, %')
-
-        self.chart = QChart()
-        self.chart.setTitle('Fraction ratio')
-        self.chart.addAxis(h_axis, Qt.AlignBottom)
-        self.chart.addAxis(v_axis, Qt.AlignLeft)
-        self.chart.addSeries(self.series)
-
-        self.series.attachAxis(h_axis)
-        self.series.attachAxis(v_axis)
-
-        self.setChart(self.chart)
-
         self.setup_pseudo_data_gen_timer()
 
 
