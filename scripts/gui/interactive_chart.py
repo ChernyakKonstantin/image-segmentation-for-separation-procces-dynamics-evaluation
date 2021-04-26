@@ -45,6 +45,7 @@ class BaseTimeSeries(QChartView):
         self.setChart(self.chart)
 
 
+
 class InteractiveChart(BaseTimeSeries):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
