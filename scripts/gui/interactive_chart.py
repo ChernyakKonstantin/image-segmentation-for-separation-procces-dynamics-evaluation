@@ -14,11 +14,11 @@ from typing import Tuple, List, Any
 
 class BaseTimeSeries(QChartView):
     def __init__(self,
-                 x_label: str,
-                 x_range: Tuple[float, float],
-                 y_label: str,
-                 y_range: Tuple[float, float],
-                 title: str,
+                 x_label: str = '',
+                 x_range: Tuple[float, float] = (0, 1),
+                 y_label: str = '',
+                 y_range: Tuple[float, float] = (0, 1),
+                 title: str = '',
                  *args,
                  **kwargs):
         super().__init__(*args, **kwargs)
@@ -45,37 +45,12 @@ class BaseTimeSeries(QChartView):
         self.setChart(self.chart)
 
 
-class PreviewTimeSeries(QChartView):
+class PreviewTimeSeries(BaseTimeSeries):
     """
     Класс виджета, отображающего весь временной ряд. Имеет область выбора
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.series = QLineSeries()
-
-        for x in range(100):
-            self.series.append(QPointF(x, np.random.random()))
-
-        h_axis = QValueAxis()  # TODO change to Datetime
-        h_axis.setRange(0, 100)
-        h_axis.setTitleText('Time')
-
-        v_axis = QValueAxis()
-        v_axis.setRange(0, 100)
-        v_axis.setTitleText('Fraction, %')
-
-        self.chart = QChart()
-        self.chart.setTitle('Fraction ratio')
-        self.chart.addAxis(h_axis, Qt.AlignBottom)
-        self.chart.addAxis(v_axis, Qt.AlignLeft)
-        self.chart.addSeries(self.series)
-
-        self.series.attachAxis(h_axis)
-        self.series.attachAxis(v_axis)
-
-        self.setChart(self.chart)
-
         self.setRubberBand(QChartView.HorizontalRubberBand)  # Выбор области
 
 
