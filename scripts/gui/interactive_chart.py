@@ -59,6 +59,17 @@ class BaseTimeSeries(QChartView):
         """
         self.x_axis.setRange(self.x_axis.min(), new_limit)
 
+    def update_series(self, values: tuple):
+        """
+        Метод добавления новых значений временных рядов.
+
+        """
+        oil_value, emulsion_value, water_value = values
+        self.oil_series.append(oil_value)
+        self.emulsion_series.append(emulsion_value)
+        self.water_series.append(water_value)
+
+
 
 class InteractiveChart(BaseTimeSeries):
     def __init__(self, *args, **kwargs):
