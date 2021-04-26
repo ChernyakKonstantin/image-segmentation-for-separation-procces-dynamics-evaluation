@@ -75,20 +75,17 @@ class CentralWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.webcam_img = LabeledCanvas('Image')
-        self.segmented_img = InteractiveMaskDisplay('Segmentation')
         self.chart = BaseTimeSeries()
-
-        v_layout = QVBoxLayout()
-        v_layout.addWidget(self.webcam_img)
-        v_layout.addWidget(self.segmented_img)
+        self.segmented_img = InteractiveMaskDisplay('Segmentation')
 
         h_layout = QHBoxLayout()
-        # h_layout.setAlignment(Qt.AlignCenter)
-        h_layout.addLayout(v_layout)
-        h_layout.addWidget(self.chart)
+        h_layout.addWidget(self.segmented_img)
 
-        self.setLayout(h_layout)
+        v_layout = QVBoxLayout()
+        v_layout.addWidget(self.chart)
+        v_layout.addLayout(h_layout)
+
+        self.setLayout(v_layout)
 
 
 class MainWindow(QMainWindow):
@@ -107,7 +104,7 @@ class MainWindow(QMainWindow):
         self.central_widget = CentralWidget()
         self.setCentralWidget(self.central_widget)
 
-        self.showFullScreen()
+        self.show()  #self.showFullScreen()
 
 
 class Application(QApplication):
@@ -117,10 +114,10 @@ class Application(QApplication):
 
     def process_image(self):
         """Реализовать создание снимка, его обработку и вывод снимка, маски, графика"""
-        raise NotImplementedError
+
+
+
 
 
 app = Application(sys.argv)  # what's sys.argv?
 sys.exit(app.exec_())
-
-
