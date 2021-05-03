@@ -15,16 +15,27 @@ from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QMen
 from interactive_chart import BaseTimeSeries
 from interactive_mask_display import InteractiveMaskDisplay
 
+import datetime as dt
+from typing import Tuple, List, Any
+
 
 class Client:
     """Класс TCP-клиента, опрашивающего сервер для получения результатов сегментации."""
     def __init__(self, ip: str, port: int):
-        self._address = (ip, port)
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._sock.connect(self._address)
+        pass
+        # self._address = (ip, port)
+        # self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self._sock.connect(self._address)
 
     def receive(self):
-        raise NotImplementedError  # received = str(self._sock.recv(1024), "utf-8")
+        # Заглушка
+        # raise NotImplementedError  # received = str(self._sock.recv(1024), "utf-8")
+        image: np.ndarray = np.random.randint(0, 255, (360, 640, 3), dtype='uint8')
+        mask: np.ndarray = np.random.randint(0, 255, (360, 640, 3), dtype='uint8')
+        cur_datetime = dt.datetime.now()
+        values: Tuple[float, float, float] = tuple(np.random.random(3))
+        return image, mask, cur_datetime, values
+
 
 
 class LabeledCanvas(QWidget): #TODO чтобы часто не обрашаться сделать изменение хранимое значенияр азмера окна по событию изменение размера
@@ -118,9 +129,9 @@ class Application(QApplication):
         Инициализация TCP-клиента
 
         """
-        self._tcp_client = Client()
+        self._tcp_client = Client('localhost', 8080)
         self._tcp_client_timer = QTimer()
-        self._tcp_client_timer.setInterval(300)  # TODO: Change
+        self._tcp_client_timer.setInterval(1000)  # TODO: Change
         self._tcp_client_timer.timeout.connect(self._handle_tcp_client)
         self._tcp_client_timer.start()
 
@@ -131,24 +142,10 @@ class Application(QApplication):
         """
         image, mask, cur_time, values = self._tcp_client.receive()
         self.main_window.central_widget.chart.add_new_values((cur_time, values))
-        self.main_window.central_widget.segmented_img.draw((image, mask))
+        self.main_window.central_widget.segmented_img.draw(image)
 
 
 
 
 app = Application(sys.argv)  # what's sys.argv?
 sys.exit(app.exec_())
-
-
-# def pseudo_data_gen(self):
-#     x = np.random.random() * 100
-#     y = np.random.random() * 100
-#     self.series.append(QPointF(x, y))
-#     self.pseudo_data_gen_timer.start()
-#
-#
-# def setup_pseudo_data_gen_timer(self):
-#     self.pseudo_data_gen_timer = QTimer()
-#     self.pseudo_data_gen_timer.setInterval(300)
-#     self.pseudo_data_gen_timer.timeout.connect(self.pseudo_data_gen)
-#     self.pseudo_data_gen_timer.start()
