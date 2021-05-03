@@ -1,35 +1,28 @@
 # TODO Добавить темную тему
 # TODO Добавить печать тренда
 
-import socket
+import datetime as dt
 import sys
-import time
-from threading import Thread
+from typing import Tuple
 
-import cv2 as cv
 import numpy as np
-from PyQt5.QtCore import QSize, QTimer, Qt
-from PyQt5.QtGui import QColor, QImage, QPalette, QPixmap
-from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QMenuBar, QStatusBar, QVBoxLayout, QWidget
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QMenuBar, QStatusBar, QVBoxLayout, QWidget
 
 from interactive_chart import BaseTimeSeries
 from interactive_mask_display import InteractiveMaskDisplay
 
-import datetime as dt
-from typing import Tuple, List, Any
-
 
 class Client:
     """Класс TCP-клиента, опрашивающего сервер для получения результатов сегментации."""
+
     def __init__(self, ip: str, port: int):
+        # Заглушка
         pass
-        # self._address = (ip, port)
-        # self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self._sock.connect(self._address)
 
     def receive(self):
+        """Метод получения данных от сервера."""
         # Заглушка
-        # raise NotImplementedError  # received = str(self._sock.recv(1024), "utf-8")
         image: np.ndarray = np.random.randint(0, 255, (360, 640, 3), dtype='uint8')
         mask: np.ndarray = np.random.randint(0, 255, (360, 640, 3), dtype='uint8')
         cur_datetime = dt.datetime.now()
@@ -37,52 +30,9 @@ class Client:
         return image, mask, cur_datetime, values
 
 
-
-class LabeledCanvas(QWidget): #TODO чтобы часто не обрашаться сделать изменение хранимое значенияр азмера окна по событию изменение размера
-    # Класс для отрисовки изображений
-    # empty_image = QImage(np.zeros([1280, 720, 3], dtype='uint8'), 100, 100, QImage.Format_RGB888)  # Not fully correct
-
-    def __init__(self, title, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.palette = QPalette()
-        self.palette.setColor(QPalette.Background, QColor(130, 120, 190))
-        self.setAutoFillBackground(True)
-        self.setPalette(self.palette)
-
-        self.label = QLabel(self)
-        self.label.setFixedHeight(20)
-        self.label.setText(title)
-
-        self.image = QLabel(self)
-        self.image.setMinimumSize(QSize(432, 240))
-        # self.image.setMaximumSize(QSize(864, 480))
-        # self.image.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
-        # self.image.setSizeIncrement(16, 9)
-        # self.image.setPixmap(QPixmap.fromImage(LabeledCanvas.empty_image))
-
-        layout = QVBoxLayout()
-        # layout.setAlignment(Qt.AlignCenter)  # layout.setAlignment(self.image, Qt.AlignCenter)
-        layout.addWidget(self.label)
-        layout.addWidget(self.image)
-        # layout.addStretch()
-
-        self.setLayout(layout)
-
-        # self.image.setScaledContents(True)
-
-    def draw(self, image: np.ndarray):
-        rgb_image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-        canvas_size = self.image.size()
-        target_shape = canvas_size.width(), canvas_size.height()
-        # resized_image = cv.resize(rgb_image, target_shape)
-        q_image = QImage(rgb_image, rgb_image.shape[1], rgb_image.shape[0], 3 * rgb_image.shape[1], QImage.Format_RGB888)  # Not fully correct
-        pixmap = QPixmap.fromImage(q_image)
-        scaled_pixmap = pixmap.scaled(canvas_size, Qt.KeepAspectRatio)
-
-        self.image.setPixmap(scaled_pixmap)  # pixmap
-
-
 class CentralWidget(QWidget):
+    """Обязательный виджет Qt-приложения. Используется в QMainWindow."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -100,6 +50,8 @@ class CentralWidget(QWidget):
 
 
 class MainWindow(QMainWindow):
+    """Обязательный виджет Qt-приложения. Используется в QApplication."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -115,7 +67,7 @@ class MainWindow(QMainWindow):
         self.central_widget = CentralWidget()
         self.setCentralWidget(self.central_widget)
 
-        self.show()  #self.showFullScreen()
+        self.show()
 
 
 class Application(QApplication):
@@ -125,27 +77,19 @@ class Application(QApplication):
         self.main_window = MainWindow()
 
     def _tcp_client_setup(self):
-        """
-        Инициализация TCP-клиента
-
-        """
+        """Инициализация TCP-клиента"""
         self._tcp_client = Client('localhost', 8080)
         self._tcp_client_timer = QTimer()
-        self._tcp_client_timer.setInterval(1000)  # TODO: Change
+        self._tcp_client_timer.setInterval(100)
         self._tcp_client_timer.timeout.connect(self._handle_tcp_client)
         self._tcp_client_timer.start()
 
     def _handle_tcp_client(self):
-        """
-        Обработчик TCP-клиента
-
-        """
+        """Обработчик TCP-клиента"""
         image, mask, cur_time, values = self._tcp_client.receive()
         self.main_window.central_widget.chart.add_new_values((cur_time, values))
         self.main_window.central_widget.segmented_img.draw(image)
 
 
-
-
-app = Application(sys.argv)  # what's sys.argv?
+app = Application(sys.argv)
 sys.exit(app.exec_())
