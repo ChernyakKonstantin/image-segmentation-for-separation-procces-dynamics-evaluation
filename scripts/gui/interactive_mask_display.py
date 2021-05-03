@@ -1,6 +1,7 @@
 # TODO Хочу, чтобы двойным кликом по окошку всплывало окно в большем размере, которое также уходило по двойному клику.
 # TODO Пусть оно прям на фото выделяет
 import sys
+from typing import Any
 
 import numpy as np
 from PyQt5.QtCore import Qt
@@ -46,6 +47,10 @@ class InteractiveMaskDisplay(QWidget):
         self.increased_window = QWindow()
         self.increased_window.setTitle('Segmentation')
         self.increased_window.show()
+
+    def demo_func(self, some_parameter: Any):
+        """Метод, который должен быть вызван внешним обработчиком."""
+        print('I was called!')
 
 
 class Application(QApplication):
