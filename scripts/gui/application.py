@@ -3,7 +3,7 @@
 
 import datetime as dt
 import sys
-from typing import Tuple
+from typing import Any, Tuple
 
 import numpy as np
 from PyQt5.QtCore import QTimer
@@ -90,6 +90,17 @@ class CentralWidget(QWidget):
             self._visibility_menu_actions['All'].setChecked(True)
         else:
             self._visibility_menu_actions['All'].setChecked(False)
+
+        param_to_be_passed = True
+        self.layer_change_handler(param_to_be_passed)
+
+    def layer_change_handler(self, param_to_be_passed: Any):
+        """Обработчик, вызываемые при нажатии внутри меню выбора слоев.
+        Предназачен для вызова методов экзеплеров класса графика временного ряда
+        и класса отображения изображения.
+        """
+        self.chart.demo_func(param_to_be_passed)
+        self.segmented_img.demo_func(param_to_be_passed)
 
 
 class MainWindow(QMainWindow):
