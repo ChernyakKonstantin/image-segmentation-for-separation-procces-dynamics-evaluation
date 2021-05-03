@@ -1,6 +1,6 @@
 import datetime
 import sys
-from typing import Tuple
+from typing import Tuple, Any
 
 from PyQt5.QtChart import QChart, QChartView, QDateTimeAxis, QLineSeries, QValueAxis
 from PyQt5.QtCore import QPointF, Qt
@@ -71,6 +71,10 @@ class BaseTimeSeries(QChartView):
         datetime, values = data
         self._update_time_axis_max(datetime)
         self._update_series(values)
+
+    def demo_func(self, some_parameter: Any):
+        """Метод, который должен быть вызван внешним обработчиком."""
+        print('I was called!')
 
 
 class Application(QApplication):
