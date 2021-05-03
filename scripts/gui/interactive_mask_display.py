@@ -1,5 +1,5 @@
 # TODO Хочу, чтобы двойным кликом по окошку всплывало окно в большем размере, которое также уходило по двойному клику.
-
+# TODO Пусть оно прям на фото выделяет
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QVBoxLayout, QStatusBar, QHBoxLayout, QMenuBar, \
     QGridLayout, QSizePolicy, QRadioButton, QCheckBox, QButtonGroup, QGroupBox, QCheckBox, QPushButton, QMenu, QAction, QActionGroup
@@ -76,9 +76,11 @@ class InteractiveMaskDisplay(QWidget):
             self._visibility_menu_actions['All'].setChecked(False)
 
     def draw(self, img: np.ndarray):
-        q_image = QImage(bytes(img), img.shape[1], img.shape[0], QImage.Format_RGB888)
+        h, w, c = img.shape
+        q_image = QImage(bytes(img), w, h, c*w, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
-        self.img.setPixmap(pixmap)
+        self._img.setPixmap(pixmap)
+
 
     def mouseDoubleClickEvent(self, event):
         self.increased_window = QWindow()
