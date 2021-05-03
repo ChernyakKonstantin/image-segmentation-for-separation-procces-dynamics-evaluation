@@ -74,7 +74,7 @@ class BaseTimeSeries(QChartView):
 
     def demo_func(self, some_parameter: Any):
         """Метод, который должен быть вызван внешним обработчиком."""
-        print('I was called!')
+        print('I do job for time series chart!')
 
 
 class Application(QApplication):
