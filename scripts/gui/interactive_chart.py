@@ -63,25 +63,24 @@ class BaseTimeSeries(QChartView):
 
         """
         oil_value, emulsion_value, water_value = values
-        self.oil_series.append(oil_value)
-        self.emulsion_series.append(emulsion_value)
-        self.water_series.append(water_value)
+        self.oil_series.append(QPointF(self.x_axis.max().toMSecsSinceEpoch(), oil_value))
+        self.emulsion_series.append(QPointF(self.x_axis.max().toMSecsSinceEpoch(), emulsion_value))
+        self.water_series.append(QPointF(self.x_axis.max().toMSecsSinceEpoch(), water_value))
+
 
     def add_new_values(self, data: Tuple[datetime.datetime, Tuple[float, float, float]]):
         """
         Метод добавления новых значений временных рядов и момента времени.
 
         """
-        time, values = data
-        self._update_time_axis_max(time)
+        datetime, values = data
+        self._update_time_axis_max(datetime)
         self._update_series(values)
-
-
-
 
 
 class InteractiveChart(BaseTimeSeries):
     def __init__(self, *args, **kwargs):
+        raise NotImplementedError
         super().__init__(*args, **kwargs)
         self.enable_move = False
         self.setup_pseudo_data_gen_timer()
@@ -131,12 +130,14 @@ class PreviewTimeSeries(BaseTimeSeries):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        raise NotImplementedError
         self.setRubberBand(QChartView.HorizontalRubberBand)  # Выбор области
 
 
 
 class AdvancedTimeSeriesChart(QWidget):
     def __init__(self, *args, **kwargs):
+        raise NotImplementedError
         super().__init__(*args, **kwargs)
 
         v_layout = QVBoxLayout()
@@ -158,7 +159,7 @@ class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.main_window = QMainWindow()
-        self.main_window.setCentralWidget(PreviewTimeSeries())
+        self.main_window.setCentralWidget(BaseTimeSeries())
         self.main_window.show()
 
 
