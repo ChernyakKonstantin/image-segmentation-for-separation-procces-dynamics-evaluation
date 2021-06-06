@@ -2,10 +2,11 @@
 # TODO Добавить печать тренда
 
 import datetime as dt
+import pickle
+import socket
 import sys
-from typing import Any, Tuple
+from typing import Any
 
-import numpy as np
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QActionGroup, QMenu, QPushButton
@@ -20,16 +21,23 @@ class Client:
     """Класс TCP-клиента, опрашивающего сервер для получения результатов сегментации."""
 
     def __init__(self, ip: str, port: int):
-        # Заглушка
-        pass
+        self.ip = ip
+        self.port = port
 
     def receive(self):
         """Метод получения данных от сервера."""
-        # Заглушка
-        image: np.ndarray = np.random.randint(0, 255, (360, 640, 3), dtype='uint8')
-        mask: np.ndarray = np.random.randint(0, 255, (360, 640, 3), dtype='uint8')
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((self.ip, self.port))
+            request = []
+            while True:
+                packet = s.recv(4096)
+                if not packet:
+                    break
+                request.append(packet)
+            package = pickle.loads(b"".join(request))
+            image, mask, values = package
+
         cur_datetime = dt.datetime.now()
-        values: Tuple[float, float, float] = tuple(np.random.random(3))
         return image, mask, cur_datetime, values
 
 
@@ -132,7 +140,7 @@ class Application(QApplication):
 
     def _tcp_client_setup(self):
         """Инициализация TCP-клиента"""
-        self._tcp_client = Client('localhost', 8080)
+        self._tcp_client = Client('localhost', 80)
         self._tcp_client_timer = QTimer()
         self._tcp_client_timer.setInterval(100)
         self._tcp_client_timer.timeout.connect(self._handle_tcp_client)
@@ -141,6 +149,7 @@ class Application(QApplication):
     def _handle_tcp_client(self):
         """Обработчик TCP-клиента"""
         image, mask, cur_time, values = self._tcp_client.receive()
+        print(mask.shape)
         self.main_window.central_widget.chart.add_new_values((cur_time, values))
         self.main_window.central_widget.segmented_img.draw(image)
 
