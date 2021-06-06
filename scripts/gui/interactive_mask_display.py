@@ -1,11 +1,12 @@
 # TODO Хочу, чтобы двойным кликом по окошку всплывало окно в большем размере, которое также уходило по двойному клику.
 # TODO Пусть оно прям на фото выделяет
 import sys
+from typing import Any
 
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage, QPixmap, QWindow
-from PyQt5.QtWidgets import QActionGroup, QApplication, QGridLayout, QLabel, QMainWindow, QMenu, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QGridLayout, QLabel, QMainWindow, QWidget
 
 
 class InteractiveMaskDisplay(QWidget):
@@ -22,55 +23,16 @@ class InteractiveMaskDisplay(QWidget):
         super().__init__(*args, **kwargs)
 
         self._setup_image()
-        self._setup_menu_pbtn()
         self._setup_layout()
 
     def _setup_image(self):
         self._img = QLabel()
         self._img.setPixmap(InteractiveMaskDisplay._get_default_pixmap())
 
-    def _setup_visibility_menu(self):
-        self.menu = QMenu('Select visible layers')
-        self._action_group = QActionGroup(self)
-        self._action_group.setExclusive(False)
-
-        self._visibility_menu_actions = {}
-        for action_name in ['All', 'Oil', 'Emulsion', 'Water']:
-            action = self.menu.addAction(action_name)
-            action.setCheckable(True)
-            if action_name == 'All':
-                action.triggered.connect(self._on_show_all_trigger)
-            else:
-                action.triggered.connect(self._on_visibility_menu_trigger)
-                self._action_group.addAction(action)
-            self._visibility_menu_actions[action_name] = action
-
-    def _setup_menu_pbtn(self):
-        self._setup_visibility_menu()
-        self.menu_pbtn = QPushButton('Visible layers')
-        self.menu_pbtn.setMenu(self.menu)
-
     def _setup_layout(self):
         widget_layout = QGridLayout()
         widget_layout.addWidget(self._img, 0, 0, Qt.AlignLeft)
-        widget_layout.addWidget(self.menu_pbtn, 1, 0, Qt.AlignLeft)
         self.setLayout(widget_layout)
-
-    def _on_show_all_trigger(self):
-        """Обработчик нажатия на кнопку All"""
-        if self._visibility_menu_actions['All'].isChecked():
-            for action in self._action_group.actions():
-                action.setChecked(True)
-        else:
-            for action in self._action_group.actions():
-                action.setChecked(False)
-
-    def _on_visibility_menu_trigger(self):
-        """Обработчик нажатия на кнопки"""
-        if all([action.isChecked() for action in self._action_group.actions()]):
-            self._visibility_menu_actions['All'].setChecked(True)
-        else:
-            self._visibility_menu_actions['All'].setChecked(False)
 
     def draw(self, img: np.ndarray):
         """Метод отрисовки изображения"""
@@ -85,6 +47,10 @@ class InteractiveMaskDisplay(QWidget):
         self.increased_window = QWindow()
         self.increased_window.setTitle('Segmentation')
         self.increased_window.show()
+
+    def demo_func(self, some_parameter: Any):
+        """Метод, который должен быть вызван внешним обработчиком."""
+        print('I do job for image display!')
 
 
 class Application(QApplication):

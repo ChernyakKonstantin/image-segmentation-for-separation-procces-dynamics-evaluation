@@ -3,11 +3,14 @@
 
 import datetime as dt
 import sys
-from typing import Tuple
+from typing import Any, Tuple
 
 import numpy as np
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QMenuBar, QStatusBar, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QActionGroup, QMenu, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QMenuBar, QStatusBar, QVBoxLayout
 
 from interactive_chart import BaseTimeSeries
 from interactive_mask_display import InteractiveMaskDisplay
@@ -36,6 +39,8 @@ class CentralWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._setup_menu_pbtn()
+
         self.chart = BaseTimeSeries()
         self.segmented_img = InteractiveMaskDisplay('Segmentation')
 
@@ -45,8 +50,57 @@ class CentralWidget(QWidget):
         v_layout = QVBoxLayout()
         v_layout.addWidget(self.chart)
         v_layout.addLayout(h_layout)
+        v_layout.addWidget(self.menu_pbtn, 1, Qt.AlignLeft)
 
         self.setLayout(v_layout)
+
+    def _setup_visibility_menu(self):
+        self.menu = QMenu('Select visible layers')
+        self._action_group = QActionGroup(self)
+        self._action_group.setExclusive(False)
+
+        self._visibility_menu_actions = {}
+        for action_name in ['All', 'Oil', 'Emulsion', 'Water']:
+            action = self.menu.addAction(action_name)
+            action.setCheckable(True)
+            if action_name == 'All':
+                action.triggered.connect(self._on_show_all_trigger)
+            else:
+                action.triggered.connect(self._on_visibility_menu_trigger)
+                self._action_group.addAction(action)
+            self._visibility_menu_actions[action_name] = action
+
+    def _setup_menu_pbtn(self):
+        self._setup_visibility_menu()
+        self.menu_pbtn = QPushButton('Visible layers')
+        self.menu_pbtn.setMenu(self.menu)
+
+    def _on_show_all_trigger(self):
+        """Обработчик нажатия на кнопку All"""
+        if self._visibility_menu_actions['All'].isChecked():
+            for action in self._action_group.actions():
+                action.setChecked(True)
+        else:
+            for action in self._action_group.actions():
+                action.setChecked(False)
+
+    def _on_visibility_menu_trigger(self):
+        """Обработчик нажатия на кнопки"""
+        if all([action.isChecked() for action in self._action_group.actions()]):
+            self._visibility_menu_actions['All'].setChecked(True)
+        else:
+            self._visibility_menu_actions['All'].setChecked(False)
+
+        param_to_be_passed = True
+        self.layer_change_handler(param_to_be_passed)
+
+    def layer_change_handler(self, param_to_be_passed: Any):
+        """Обработчик, вызываемые при нажатии внутри меню выбора слоев.
+        Предназачен для вызова методов экзеплеров класса графика временного ряда
+        и класса отображения изображения.
+        """
+        self.chart.demo_func(param_to_be_passed)
+        self.segmented_img.demo_func(param_to_be_passed)
 
 
 class MainWindow(QMainWindow):
