@@ -1,11 +1,10 @@
 # TODO Хочу, чтобы двойным кликом по окошку всплывало окно в большем размере, которое также уходило по двойному клику.
 # TODO Пусть оно прям на фото выделяет
 import sys
-from typing import Any
 
 import numpy as np
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QImage, QPixmap, QWindow
+from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import QApplication, QGridLayout, QLabel, QMainWindow, QWidget
 
 
@@ -19,10 +18,11 @@ class InteractiveMaskDisplay(QWidget):
         q_image.load('blank.png')
         return QPixmap.fromImage(q_image)
 
-    def __init__(self, title, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._setup_image()
+        # self._setup_menu_pbtn()
         self._setup_layout()
 
     def _setup_image(self):
@@ -41,23 +41,12 @@ class InteractiveMaskDisplay(QWidget):
         pixmap = QPixmap.fromImage(q_image)
         self._img.setPixmap(pixmap)
 
-    # Нельзя переименовать с нижним подчеркиванием
-    def mouseDoubleClickEvent(self, event):
-        """Обработчик двойного клика"""
-        self.increased_window = QWindow()
-        self.increased_window.setTitle('Segmentation')
-        self.increased_window.show()
-
-    def demo_func(self, some_parameter: Any):
-        """Метод, который должен быть вызван внешним обработчиком."""
-        print('I do job for image display!')
-
 
 class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.main_window = QMainWindow()
-        self.main_window.setCentralWidget(InteractiveMaskDisplay('Urod'))
+        self.main_window.setCentralWidget(InteractiveMaskDisplay(lambda x: print(x)))
         self.main_window.show()
 
 
