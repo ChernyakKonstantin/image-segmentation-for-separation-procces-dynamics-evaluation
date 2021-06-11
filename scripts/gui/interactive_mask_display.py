@@ -1,5 +1,3 @@
-# TODO Хочу, чтобы двойным кликом по окошку всплывало окно в большем размере, которое также уходило по двойному клику.
-# TODO Пусть оно прям на фото выделяет
 import sys
 
 import numpy as np
@@ -32,6 +30,7 @@ class InteractiveMaskDisplay(QWidget):
     def _setup_layout(self):
         widget_layout = QGridLayout()
         widget_layout.addWidget(self._img, 0, 0, Qt.AlignLeft)
+        widget_layout.setAlignment(Qt.AlignLeft)
         self.setLayout(widget_layout)
 
     def draw(self, img: np.ndarray):
@@ -46,7 +45,7 @@ class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.main_window = QMainWindow()
-        self.main_window.setCentralWidget(InteractiveMaskDisplay(lambda x: print(x)))
+        self.main_window.setCentralWidget(InteractiveMaskDisplay())
         self.main_window.show()
 
 
