@@ -1,23 +1,20 @@
-# TODO Добавить темную тему
-# TODO Добавить печать тренда
-
+import csv
 import datetime as dt
+import os
 import pickle
 import socket
 import sys
-from typing import Any
-import os
+
+import matplotlib.pyplot as plt
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QActionGroup, QMenu, QPushButton, QLabel
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtWidgets import QApplication, QFileDialog, QLabel, QLineEdit, QMainWindow
 from PyQt5.QtWidgets import QHBoxLayout, QMenuBar, QStatusBar, QVBoxLayout
-from PyQt5.QtWidgets import QApplication, QCalendarWidget, QCheckBox, QFileDialog, QLabel, QMainWindow, QTimeEdit, QLineEdit
-import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QWidget
+
 from interactive_chart import TimeSeriesChart
 from interactive_mask_display import InteractiveMaskDisplay
-import csv
+
 
 class Client:
     """Класс TCP-клиента, опрашивающего сервер для получения результатов сегментации."""
@@ -87,6 +84,7 @@ class CentralWidget(QWidget):
 
 class MainWindow(QMainWindow):
     """Обязательный виджет Qt-приложения. Используется в QApplication."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle('Separator Dynamics Estimator')
