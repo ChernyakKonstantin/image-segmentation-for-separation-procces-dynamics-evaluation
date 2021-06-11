@@ -13,7 +13,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QActionGroup, QMenu, QPushButton, QLabel
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt5.QtWidgets import QHBoxLayout, QMenuBar, QStatusBar, QVBoxLayout
-from PyQt5.QtWidgets import QApplication, QCalendarWidget, QCheckBox, QFileDialog, QLabel, QMainWindow, QTimeEdit
+from PyQt5.QtWidgets import QApplication, QCalendarWidget, QCheckBox, QFileDialog, QLabel, QMainWindow, QTimeEdit, QLineEdit
 import matplotlib.pyplot as plt
 from interactive_chart import TimeSeriesChart
 from interactive_mask_display import InteractiveMaskDisplay
@@ -78,10 +78,10 @@ class CentralWidget(QWidget):
 
         self.setLayout(v_layout)
 
-    def set_text(self, values: tuple):
-        self.oil_label.setText(f'Oil fraction: {round(values[0], 1)}%')
-        self.emulsion_label.setText(f'Emulsion fraction: {round(values[1], 1)}%')
-        self.water_label.setText(f'Water fraction: {round(values[2], 1)}%')
+    def set_text(self, values: dict):
+        self.oil_label.setText(f'Oil fraction: {round(values["oil"], 1)}%')
+        self.emulsion_label.setText(f'Emulsion fraction: {round(values["emulsion"], 1)}%')
+        self.water_label.setText(f'Water fraction: {round(values["water"], 1)}%')
 
 
 class MainWindow(QMainWindow):
@@ -96,6 +96,7 @@ class MainWindow(QMainWindow):
 
         self.menu_bar = QMenuBar()
         self.setMenuBar(self.menu_bar)
+        self.menu_bar.setNativeMenuBar(True)
         self.menu_bar.addAction('Quit', self.close)
         self.menu_bar.addSeparator()
 
@@ -109,18 +110,46 @@ class MainWindow(QMainWindow):
         self.menu_bar.addSeparator()
 
 
+class PoolingPeriodSelector(QWidget):
+    def __init__(self, callback, *args, **kwargs):
+        super(PoolingPeriodSelector, self).__init__(*args, **kwargs)
+        self.callback = callback
+        self.setWindowTitle('Set polling period')
+        label = QLabel('Pooling period, minutes:')
+        self.line_edit = QLineEdit()
+        self.line_edit.editingFinished.connect(self._get_period)
+        widget_layout = QHBoxLayout()
+        widget_layout.addWidget(label)
+        widget_layout.addWidget(self.line_edit)
+        widget_layout.setAlignment(Qt.AlignLeft)
+        self.setLayout(widget_layout)
+
+    def _get_period(self):
+        value = self.line_edit.text()
+        try:
+            value = int(value)
+            self.callback(value)
+            self.close()
+        except ValueError:
+            pass
+
+
 class Application(QApplication):
     LOG_DIRECTORY = 'logs'
     FIELD_NAMES = ('oil', 'emulsion', 'water')
 
+    # Путь до лог-файла
     file_path = None
-    call_period = None
+    # Период опроса, мс
+    pooling_period = 60 * 1e3
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._setup_logger()
+        self.pooling_period_selector = PoolingPeriodSelector(callback=self._set_pooling_period)
         self.main_window = MainWindow()
         self.main_window.add_menubar_action('Connect to server', self._tcp_client_setup)
+        self.main_window.add_menubar_action('Set polling period', self._show_polling_period_selector)
         self.main_window.add_menubar_action('Save chart', self._handle_image_save)
 
     def _setup_logger(self):
@@ -150,6 +179,7 @@ class Application(QApplication):
         """Обработчик TCP-клиента"""
         try:
             image, cur_time, values = self._tcp_client.receive()
+            self._handle_log_write(values)
             self.main_window.central_widget.chart.add_new_values((cur_time, values))
             self.main_window.central_widget.set_text(values)
             self.main_window.central_widget.segmented_img.draw(image)
@@ -157,6 +187,12 @@ class Application(QApplication):
         except ConnectionRefusedError:
             self._tcp_client_timer.stop()
             self.main_window.status_bar.showMessage('Server is disconnected')
+
+    def _show_polling_period_selector(self):
+        self.pooling_period_selector.show()
+
+    def _set_pooling_period(self, period):
+        self.pooling_period = int(period * 1e3)
 
     def _handle_image_save(self):
         filename = QFileDialog.getSaveFileName(None, 'Open File', './', "Image (*.png *.jpg *jpeg)")[0]
