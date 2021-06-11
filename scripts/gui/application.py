@@ -22,9 +22,13 @@ import csv
 class Client:
     """Класс TCP-клиента, опрашивающего сервер для получения результатов сегментации."""
 
-    def __init__(self, ip: str, port: int):
+    def __init__(self, ip: str, port: int, time_step: int):
         self.ip = ip
         self.port = port
+        self.time_step = time_step
+
+    def update_timestep(self, time_step):
+        self.time_step = time_step
 
     def receive(self):
         """Метод получения данных от сервера."""
@@ -37,12 +41,9 @@ class Client:
                     break
                 request.append(packet)
             package = pickle.loads(b"".join(request))
-            # image, mask, values = package
-            image, values = package
+            image, mask, values = package
 
-        cur_datetime = dt.datetime.now()
-        # return image, mask, cur_datetime, values
-        return image, cur_datetime, values
+        return image, mask, self.time_step, values
 
 
 class CentralWidget(QWidget):
@@ -127,7 +128,7 @@ class PoolingPeriodSelector(QWidget):
     def _get_period(self):
         value = self.line_edit.text()
         try:
-            value = int(value)
+            value = float(value)
             self.callback(value)
             self.close()
         except ValueError:
@@ -169,7 +170,7 @@ class Application(QApplication):
 
     def _tcp_client_setup(self):
         """Инициализация TCP-клиента"""
-        self._tcp_client = Client('localhost', 80)
+        self._tcp_client = Client('localhost', 80, int(self.pooling_period * 1e-3))
         self._tcp_client_timer = QTimer()
         self._tcp_client_timer.setInterval(self.call_period)
         self._tcp_client_timer.timeout.connect(self._handle_tcp_client_request)
@@ -178,11 +179,12 @@ class Application(QApplication):
     def _handle_tcp_client_request(self):
         """Обработчик TCP-клиента"""
         try:
-            image, cur_time, values = self._tcp_client.receive()
+            image, mask, time_step, values = self._tcp_client.receive()
             self._handle_log_write(values)
-            self.main_window.central_widget.chart.add_new_values((cur_time, values))
+            self.main_window.central_widget.chart.add_new_values(time_step, values)
             self.main_window.central_widget.set_text(values)
-            self.main_window.central_widget.segmented_img.draw(image)
+            self.main_window.central_widget.img.draw(image)
+            self.main_window.central_widget.segmented_img.draw(mask)
             self.main_window.status_bar.showMessage('Server is connected')
         except ConnectionRefusedError:
             self._tcp_client_timer.stop()
@@ -193,6 +195,7 @@ class Application(QApplication):
 
     def _set_pooling_period(self, period):
         self.pooling_period = int(period * 1e3)
+        self._tcp_client.update_timestep(period)
 
     def _handle_image_save(self):
         filename = QFileDialog.getSaveFileName(None, 'Open File', './', "Image (*.png *.jpg *jpeg)")[0]
