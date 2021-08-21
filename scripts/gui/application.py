@@ -19,7 +19,7 @@ from interactive_mask_display import InteractiveMaskDisplay
 class Client:
     """Класс TCP-клиента, опрашивающего сервер для получения результатов сегментации."""
 
-    def __init__(self, ip: str, port: int, time_step: int):
+    def __init__(self, ip: str, port: int, time_step: float):
         self.ip = ip
         self.port = port
         self.time_step = time_step
@@ -55,9 +55,9 @@ class CentralWidget(QWidget):
         self.img = InteractiveMaskDisplay()
         self.segmented_img = InteractiveMaskDisplay()
 
-        self.oil_label = QLabel(f'Oil fraction: {self.empty_message}')
-        self.emulsion_label = QLabel(f'Emulsion fraction: {self.empty_message}')
-        self.water_label = QLabel(f'Water fraction: {self.empty_message}')
+        self.oil_label = QLabel(f'Доля фракции масла: {self.empty_message}')
+        self.emulsion_label = QLabel(f'Доля фракции эмульсии: {self.empty_message}')
+        self.water_label = QLabel(f'Доля фракции воды: {self.empty_message}')
 
         label_layout = QVBoxLayout()
         label_layout.addWidget(self.oil_label)
@@ -77,9 +77,9 @@ class CentralWidget(QWidget):
         self.setLayout(v_layout)
 
     def set_text(self, values: dict):
-        self.oil_label.setText(f'Oil fraction: {round(values["oil"], 1)}%')
-        self.emulsion_label.setText(f'Emulsion fraction: {round(values["emulsion"], 1)}%')
-        self.water_label.setText(f'Water fraction: {round(values["water"], 1)}%')
+        self.oil_label.setText(f'Доля фракции масла: {round(values["oil"], 1)}%')
+        self.emulsion_label.setText(f'Доля фракции эмульсии: {round(values["emulsion"], 1)}%')
+        self.water_label.setText(f'Доля фракции воды: {round(values["water"], 1)}%')
 
 
 class MainWindow(QMainWindow):
@@ -91,12 +91,12 @@ class MainWindow(QMainWindow):
 
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage('Server is disconnected')
+        self.status_bar.showMessage('Сервер не подключен')
 
         self.menu_bar = QMenuBar()
         self.setMenuBar(self.menu_bar)
         self.menu_bar.setNativeMenuBar(True)
-        self.menu_bar.addAction('Quit', self.close)
+        self.menu_bar.addAction('Выход', self.close)
         self.menu_bar.addSeparator()
 
         self.central_widget = CentralWidget()
@@ -113,8 +113,8 @@ class PoolingPeriodSelector(QWidget):
     def __init__(self, callback, *args, **kwargs):
         super(PoolingPeriodSelector, self).__init__(*args, **kwargs)
         self.callback = callback
-        self.setWindowTitle('Set polling period')
-        label = QLabel('Pooling period, minutes:')
+        self.setWindowTitle('Задать период опроса')
+        label = QLabel('Период опроса, минуты:')
         self.line_edit = QLineEdit()
         self.line_edit.editingFinished.connect(self._get_period)
         widget_layout = QHBoxLayout()
@@ -139,17 +139,17 @@ class Application(QApplication):
 
     # Путь до лог-файла
     file_path = None
-    # Период опроса, мс
-    pooling_period = 60 * 1e3
+    # Период опроса, с
+    pooling_period = 0.1
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._setup_logger()
         self.pooling_period_selector = PoolingPeriodSelector(callback=self._set_pooling_period)
         self.main_window = MainWindow()
-        self.main_window.add_menubar_action('Connect to server', self._tcp_client_setup)
-        self.main_window.add_menubar_action('Set polling period', self._show_polling_period_selector)
-        self.main_window.add_menubar_action('Save chart', self._handle_image_save)
+        self.main_window.add_menubar_action('Подключиться к серверу', self._tcp_client_setup)
+        self.main_window.add_menubar_action('Задать период опроса', self._show_polling_period_selector)
+        self.main_window.add_menubar_action('Сохранить тренд', self._handle_image_save)
 
     def _setup_logger(self):
         """Инициализация файла лога текущего эксперимента"""
@@ -168,9 +168,9 @@ class Application(QApplication):
 
     def _tcp_client_setup(self):
         """Инициализация TCP-клиента"""
-        self._tcp_client = Client('localhost', 80, int(self.pooling_period * 1e-3))
+        self._tcp_client = Client('localhost', 80, self.pooling_period)
         self._tcp_client_timer = QTimer()
-        self._tcp_client_timer.setInterval(self.call_period)
+        self._tcp_client_timer.setInterval(int(self.pooling_period * 1e3))
         self._tcp_client_timer.timeout.connect(self._handle_tcp_client_request)
         self._tcp_client_timer.start()
 
@@ -183,10 +183,10 @@ class Application(QApplication):
             self.main_window.central_widget.set_text(values)
             self.main_window.central_widget.img.draw(image)
             self.main_window.central_widget.segmented_img.draw(mask)
-            self.main_window.status_bar.showMessage('Server is connected')
+            self.main_window.status_bar.showMessage('Сервер подключен')
         except ConnectionRefusedError:
             self._tcp_client_timer.stop()
-            self.main_window.status_bar.showMessage('Server is disconnected')
+            self.main_window.status_bar.showMessage('Сервер не подключен')
 
     def _show_polling_period_selector(self):
         self.pooling_period_selector.show()
@@ -196,7 +196,7 @@ class Application(QApplication):
         self._tcp_client.update_timestep(period)
 
     def _handle_image_save(self):
-        filename = QFileDialog.getSaveFileName(None, 'Open File', './', "Image (*.png *.jpg *jpeg)")[0]
+        filename = QFileDialog.getSaveFileName(None, 'Открыть файл', './', "Image (*.png *.jpg *jpeg)")[0]
 
         with open(self.file_path, 'r') as log_file:
             reader = csv.DictReader(log_file, fieldnames=self.FIELD_NAMES)
@@ -208,8 +208,8 @@ class Application(QApplication):
         fig, ax = plt.subplots(1)
         for key, value in data_to_plot.items():
             ax.plot(value, label=key)
-        ax.set_xlabel('Time, minutes')
-        ax.set_ylabel('Fraction, %')
+        ax.set_xlabel('Время, минуты')
+        ax.set_ylabel('Доля фракции, %')
         ax.grid(True)
         ax.legend()
 

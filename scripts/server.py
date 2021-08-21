@@ -1,5 +1,13 @@
 """Модуль сервера, запускаемый на ПК, выполняющем сегментацию изображений."""
 
+# Конфигурация сессии при работе с GPU
+import tensorflow as tf
+# Получить список доступных GPU
+physical_devices = tf.config.list_physical_devices('GPU')
+# Видеопамять используется по мере необходимости
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+
 import pickle
 from os import path
 from socketserver import BaseRequestHandler, TCPServer
@@ -15,20 +23,22 @@ import constants
 class ImageProcessor:
 
     @staticmethod
-    def _create_mask(pred):
-        """Функция создания изображения маски.
+    def _create_mask(prediction: np.ndarray) -> np.ndarray:
+        """
+        Функция создания маски изображений из предсказания модели.
 
         Args:
-            pred (tensorflow.Tensor: Предсказанная моделью маска
+            prediction (np.ndarray): Предсказание модели
 
         Returns:
-            mask (numpy.ndarray): Одноканальное изображение маски
+            mask (np.ndarray): Маска изображения
 
         """
-        mask = tf.argmax(pred, axis=-1)[0]
-        mask = mask.numpy()
-        mask = mask.astype('uint8')
-        return mask
+        # Выбрать наиболее вероятные классы для пикселей
+        mask = np.argmax(prediction, axis=-1)
+        # Добавить ось каналов
+        mask = np.expand_dims(mask, axis=-1)
+        return mask.astype('uint8')
 
     @staticmethod
     def _calc_fractions(mask):
@@ -71,18 +81,44 @@ class ImageProcessor:
         Returns:
             TODO
         """
-        image = np.expand_dims(image, axis=0)
-        image = image.astype('float32')
-        pred = self.model(image)
+        img = np.expand_dims(image, axis=0)
+        img = img.astype('float32')
+        pred = self.model(img)
         return pred
+
+
+    def mask_to_rgb(self, mask: np.ndarray):
+        water_mask = np.zeros_like(mask)
+        water_mask[mask == 2] = 255
+
+        emulsion_mask = np.zeros_like(mask)
+        emulsion_mask[mask == 1] = 255
+
+        oil_mask = np.zeros_like(mask)
+        oil_mask[mask == 0] = 255
+
+        return np.dstack([water_mask, emulsion_mask, oil_mask]).astype('uint8')
 
 
     def process_frame(self):
         ret, image = self.capture.read()
+        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
         pred = self._predict(image)
         mask = ImageProcessor._create_mask(pred)
+        rgb_mask = self.mask_to_rgb(mask[0])
+        rgb_mask = cv.resize(rgb_mask, (640, 360))
+
+        image = cv.resize(image, (640, 360), cv.INTER_NEAREST)
+        res = cv.addWeighted(image, 0.91, rgb_mask, 0.09, 0.0)
+
         oil_fraction, emulsion_fraction, water_fraction = ImageProcessor._calc_fractions(mask)
-        return image, mask, (oil_fraction, emulsion_fraction, water_fraction)
+
+        values = {'oil': oil_fraction * 100,
+                  'emulsion': emulsion_fraction * 100,
+                  'water': water_fraction * 100,
+                  }
+
+        return res, values
 
 
 class JetsonServerHandler(BaseRequestHandler):
@@ -95,10 +131,11 @@ class JetsonServerHandler(BaseRequestHandler):
         mask: np.ndarray
         values: Tuple[float, float, float]
 
-        image, mask, values = self._image_processor.process_frame()
+        # image, mask, values = self._image_processor.process_frame()
+        image, values = self._image_processor.process_frame()
 
-        package = pickle.dumps((image, mask, values))
-        print((type(package), len(package)))
+        # package = pickle.dumps((image, mask, values))
+        package = pickle.dumps((image, values))
         self.request.sendall(package)
 
 
